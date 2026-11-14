@@ -19,6 +19,7 @@ namespace Poker_Card
         private List<PokerCardData> _hand = new List<PokerCardData>();
         private bool _isSubmitted;
         private bool _isRerollMode;
+        private bool _isLocked;
 
         public event Action<IReadOnlyList<PokerCardData>> HandSubmitted;
         public event Action SubmitCancelled;
@@ -64,7 +65,7 @@ namespace Poker_Card
 
         // 에디터에서 우클릭 메뉴로 다시 나눠 보며 그림과 문양·숫자가 맞는지 확인하기 위해 둔다. 플레이 중에만 동작한다.
         [ContextMenu("Deal")]
-        private void Deal()
+        public void Deal()
         {
             if (!Application.isPlaying)
             {
@@ -77,6 +78,7 @@ namespace Poker_Card
             _rerollCounter.Reset();
             _isSubmitted = false;
             _isRerollMode = false;
+            _isLocked = false;
             _selection.Clear();
 
             _hand = _deck.DrawHand(_slots.Length);
@@ -148,8 +150,20 @@ namespace Poker_Card
             }
         }
 
+        // 정산이 끝난 뒤에는 제출을 취소할 수 없도록 막는다. 다음 라운드의 Deal에서 풀린다.
+        public void SetLocked(bool locked)
+        {
+            _isLocked = locked;
+            RefreshView();
+        }
+
         private void OnSubmitButtonClicked()
         {
+            if (_isLocked)
+            {
+                return;
+            }
+
             if (_isSubmitted)
             {
                 _isSubmitted = false;
@@ -193,7 +207,7 @@ namespace Poker_Card
                 _slots[i].SetDimmed(_isSubmitted && !selected);
             }
 
-            _submitButton.SetState(_selection.Count == _maxSelectCount, _isSubmitted);
+            _submitButton.SetState(_selection.Count == _maxSelectCount, _isSubmitted, _isLocked);
             _rerollButton.SetState(
                 _rerollCounter.Remaining,
                 _rerollCounter.MaxCount,

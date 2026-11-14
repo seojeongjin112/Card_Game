@@ -133,3 +133,39 @@ MonoBehaviour:
   - _suit: 3
     _rank: 10
     _sprite: {fileID: 21300000, guid: cbd9e3877ea57de42ac3a1d1c679754a, type: 3}
+  - _suit: 0
+    _rank: 11
+    _sprite: {fileID: 21300000, guid: 9d4ad9967613bd94fae8abcda70f9639, type: 3}
+  - _suit: 0
+    _rank: 12
+    _sprite: {fileID: 21300000, guid: 9d4ad9967613bd94fae8abcda70f9639, type: 3}
+  - _suit: 0
+    _rank: 13
+    _sprite: {fileID: 21300000, guid: 9d4ad9967613bd94fae8abcda70f9639, type: 3}
+  - _suit: 1
+    _rank: 11
+    _sprite: {fileID: 21300000, guid: 9d4ad9967613bd94fae8abcda70f9639, type: 3}
+  - _suit: 1
+    _rank: 12
+    _sprite: {fileID: 21300000, guid: 9d4ad9967613bd94fae8abcda70f9639, type: 3}
+  - _suit: 1
+    _rank: 13
+    _sprite: {fileID: 21300000, guid: 9d4ad9967613bd94fae8abcda70f9639, type: 3}
+  - _suit: 2
+    _rank: 11
+    _sprite: {fileID: 21300000, guid: 9d4ad9967613bd94fae8abcda70f9639, type: 3}
+  - _suit: 2
+    _rank: 12
+    _sprite: {fileID: 21300000, guid: 9d4ad9967613bd94fae8abcda70f9639, type: 3}
+  - _suit: 2
+    _rank: 13
+    _sprite: {fileID: 21300000, guid: 9d4ad9967613bd94fae8abcda70f9639, type: 3}
+  - _suit: 3
+    _rank: 11
+    _sprite: {fileID: 21300000, guid: 9d4ad9967613bd94fae8abcda70f9639, type: 3}
+  - _suit: 3
+    _rank: 12
+    _sprite: {fileID: 21300000, guid: 9d4ad9967613bd94fae8abcda70f9639, type: 3}
+  - _suit: 3
+    _rank: 13
+    _sprite: {fileID: 21300000, guid: 9d4ad9967613bd94fae8abcda70f9639, type: 3}

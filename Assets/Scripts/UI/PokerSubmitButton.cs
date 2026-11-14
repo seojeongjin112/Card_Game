@@ -25,10 +25,10 @@ namespace Poker_Card
         }
 
         // 제출 후에는 같은 버튼이 취소 버튼 역할을 하므로, 취소는 조건 없이 항상 누를 수 있어야 한다.
-        public void SetState(bool canSubmit, bool isSubmitted)
+        public void SetState(bool canSubmit, bool isSubmitted, bool isLocked = false)
         {
             _label.text = isSubmitted ? _cancelLabel : _submitLabel;
-            _button.interactable = isSubmitted || canSubmit;
+            _button.interactable = !isLocked && (isSubmitted || canSubmit);
         }
 
         private void HandleClick()

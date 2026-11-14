@@ -40,4 +40,7 @@ MonoBehaviour:
   - _handRank: 8
     _displayName: "\uC2A4\uD2B8\uB808\uC774\uD2B8 \uD50C\uB7EC\uC2DC"
     _score: 11
+  - _handRank: 9
+    _displayName: "\uB85C\uC5F4 \uC2A4\uD2B8\uB808\uC774\uD2B8 \uD50C\uB7EC\uC2DC"
+    _score: 12
   _allowAceLowStraight: 1

@@ -11,6 +11,7 @@ namespace Poker_Card
 
         private const int AceLowStraightHighRank = (int)Rank.Five;
         private const int AceHighValue = (int)Rank.Ace;
+        private const int RoyalLowValue = (int)Rank.Ten;
         private const int StraightSpan = HandSize - 1;
 
         private readonly PokerHandScoreTable _table;
@@ -36,7 +37,10 @@ namespace Poker_Card
             bool isFlush = cards.All(card => card.Suit == cards[0].Suit);
             bool isStraight = groupSizes.Count == HandSize && IsStraight(cards);
 
-            HandRank handRank = Classify(groupSizes, isFlush, isStraight);
+            // 숫자가 모두 다르고 연속인데 가장 낮은 수가 10이면 10-J-Q-K-A뿐이다.
+            bool isRoyal = isStraight && isFlush && cards.Min(card => (int)card.Rank) == RoyalLowValue;
+
+            HandRank handRank = Classify(groupSizes, isFlush, isStraight, isRoyal);
             var entry = _table.GetEntry(handRank);
             if (entry == null)
             {
@@ -46,8 +50,13 @@ namespace Poker_Card
             return new PokerHandResult(handRank, entry.DisplayName, entry.Score);
         }
 
-        private static HandRank Classify(List<int> groupSizes, bool isFlush, bool isStraight)
+        private static HandRank Classify(List<int> groupSizes, bool isFlush, bool isStraight, bool isRoyal)
         {
+            if (isRoyal)
+            {
+                return HandRank.RoyalStraightFlush;
+            }
+
             if (isStraight && isFlush)
             {
                 return HandRank.StraightFlush;
