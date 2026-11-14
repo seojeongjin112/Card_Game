@@ -11,6 +11,7 @@ namespace Poker_Card
         [SerializeField] private BattleResultView _resultView;
         [SerializeField] private HpBarView _playerHpBar;
         [SerializeField] private HpBarView _enemyHpBar;
+        [SerializeField] private EnemyHandView _enemyHandView;
         [SerializeField] private int _maxHp = 100;
         [SerializeField] private int _handCount = 7;
 
@@ -49,6 +50,7 @@ namespace Poker_Card
         private void Start()
         {
             _enemy.Deal();
+            _enemyHandView.ShowBacks();
             _resultView.ShowRoundStart();
             RefreshHp();
         }
@@ -78,6 +80,7 @@ namespace Poker_Card
             _isSettled = true;
             _state.Apply(outcome);
             _handView.SetLocked(true);
+            _enemyHandView.Reveal(_enemy.Hand, _enemy.Best.Cards);
             _resultView.ShowRoundResult(outcome, enemyHand, _state.IsOver, _state.GetWinner());
         }
 
@@ -101,6 +104,7 @@ namespace Poker_Card
             _isSettled = false;
             _playerResult = null;
             _enemy.Deal();
+            _enemyHandView.ShowBacks();
             _handView.Deal();
             _resultView.ShowRoundStart();
         }
