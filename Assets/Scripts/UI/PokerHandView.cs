@@ -1,0 +1,204 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Poker_Card
+{
+    public class PokerHandView : MonoBehaviour
+    {
+        [SerializeField] private PokerCardDatabase _database;
+        [SerializeField] private PokerCardSlot[] _slots;
+        [SerializeField] private PokerSubmitButton _submitButton;
+        [SerializeField] private PokerRerollButton _rerollButton;
+        [SerializeField] private int _maxSelectCount = 5;
+        [SerializeField] private int _rerollsPerRound = 1;
+
+        private PokerDeck _deck;
+        private PokerHandSelection _selection;
+        private PokerRerollCounter _rerollCounter;
+        private List<PokerCardData> _hand = new List<PokerCardData>();
+        private bool _isSubmitted;
+        private bool _isRerollMode;
+
+        public event Action<IReadOnlyList<PokerCardData>> HandSubmitted;
+        public event Action SubmitCancelled;
+
+        private void Awake()
+        {
+            _deck = new PokerDeck(_database.Cards);
+            _selection = new PokerHandSelection(_maxSelectCount);
+            _rerollCounter = new PokerRerollCounter(_rerollsPerRound);
+
+            for (int i = 0; i < _slots.Length; i++)
+            {
+                _slots[i].Initialize(i);
+            }
+        }
+
+        private void OnEnable()
+        {
+            _selection.SelectionChanged += RefreshView;
+            _submitButton.Clicked += OnSubmitButtonClicked;
+            _rerollButton.Clicked += OnRerollButtonClicked;
+            foreach (var slot in _slots)
+            {
+                slot.Clicked += OnSlotClicked;
+            }
+        }
+
+        private void OnDisable()
+        {
+            _selection.SelectionChanged -= RefreshView;
+            _submitButton.Clicked -= OnSubmitButtonClicked;
+            _rerollButton.Clicked -= OnRerollButtonClicked;
+            foreach (var slot in _slots)
+            {
+                slot.Clicked -= OnSlotClicked;
+            }
+        }
+
+        private void Start()
+        {
+            Deal();
+        }
+
+        // 에디터에서 우클릭 메뉴로 다시 나눠 보며 그림과 문양·숫자가 맞는지 확인하기 위해 둔다. 플레이 중에만 동작한다.
+        [ContextMenu("Deal")]
+        private void Deal()
+        {
+            if (!Application.isPlaying)
+            {
+                return;
+            }
+
+            bool wasSubmitted = _isSubmitted;
+
+            _deck.Reset();
+            _rerollCounter.Reset();
+            _isSubmitted = false;
+            _isRerollMode = false;
+            _selection.Clear();
+
+            _hand = _deck.DrawHand(_slots.Length);
+            for (int i = 0; i < _slots.Length; i++)
+            {
+                _slots[i].SetSprite(_hand[i].Sprite);
+            }
+
+            RefreshView();
+
+            // 제출 중에 다시 나누면 결과 표시도 지워야 하므로 취소와 같은 알림을 보낸다.
+            if (wasSubmitted)
+            {
+                SubmitCancelled?.Invoke();
+            }
+        }
+
+        private void OnSlotClicked(int index)
+        {
+            // 제출 중에는 선택을 바꾸지 못하게 하고, 바꾸려면 먼저 제출을 취소해야 한다.
+            if (_isSubmitted)
+            {
+                return;
+            }
+
+            if (_isRerollMode)
+            {
+                Reroll(index);
+                return;
+            }
+
+            _selection.TryToggle(index);
+        }
+
+        private void OnRerollButtonClicked()
+        {
+            if (_isSubmitted)
+            {
+                return;
+            }
+
+            if (!_isRerollMode && _rerollCounter.Remaining <= 0)
+            {
+                return;
+            }
+
+            _isRerollMode = !_isRerollMode;
+            RefreshView();
+        }
+
+        private void Reroll(int index)
+        {
+            _isRerollMode = false;
+
+            // 뽑기에 실패하면 횟수를 쓰지 않고 모드만 끝낸다.
+            if (!_deck.TryDraw(out PokerCardData replacement) || !_rerollCounter.TryConsume())
+            {
+                RefreshView();
+                return;
+            }
+
+            _hand[index] = replacement;
+            _slots[index].SetSprite(replacement.Sprite);
+
+            // 선택 해제가 이벤트로 화면을 갱신한다. 선택돼 있지 않았다면 직접 갱신해야 한다.
+            if (!_selection.Remove(index))
+            {
+                RefreshView();
+            }
+        }
+
+        private void OnSubmitButtonClicked()
+        {
+            if (_isSubmitted)
+            {
+                _isSubmitted = false;
+                RefreshView();
+                SubmitCancelled?.Invoke();
+                return;
+            }
+
+            if (_selection.Count != _maxSelectCount)
+            {
+                return;
+            }
+
+            _isRerollMode = false;
+            _isSubmitted = true;
+            RefreshView();
+            HandSubmitted?.Invoke(CollectSelectedCards());
+        }
+
+        private List<PokerCardData> CollectSelectedCards()
+        {
+            var selected = new List<PokerCardData>(_maxSelectCount);
+            for (int i = 0; i < _hand.Count; i++)
+            {
+                if (_selection.IsSelected(i))
+                {
+                    selected.Add(_hand[i]);
+                }
+            }
+
+            return selected;
+        }
+
+        private void RefreshView()
+        {
+            for (int i = 0; i < _slots.Length; i++)
+            {
+                bool selected = _selection.IsSelected(i);
+                _slots[i].SetSelected(selected);
+                // 제출 중에는 제출에서 빠진 카드를 어둡게 해서 잠긴 상태가 눈에 보이게 한다.
+                _slots[i].SetDimmed(_isSubmitted && !selected);
+            }
+
+            _submitButton.SetState(_selection.Count == _maxSelectCount, _isSubmitted);
+            _rerollButton.SetState(
+                _rerollCounter.Remaining,
+                _rerollCounter.MaxCount,
+                _isRerollMode,
+                !_isSubmitted && _rerollCounter.Remaining > 0);
+        }
+    }
+}

@@ -1,0 +1,135 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ce054e9eb063364d95e4fc35fe30cf0, type: 3}
+  m_Name: PokerCardDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::Poker_Card.PokerCardDatabase
+  _cards:
+  - _suit: 0
+    _rank: 14
+    _sprite: {fileID: 21300000, guid: 1ab6d201f95bc7b4283c6a0219f3f3f3, type: 3}
+  - _suit: 0
+    _rank: 2
+    _sprite: {fileID: 21300000, guid: 7f291c2208529e84d9ed144bb956d2ca, type: 3}
+  - _suit: 0
+    _rank: 3
+    _sprite: {fileID: 21300000, guid: a1e2ccf130183e940b813ec440df1664, type: 3}
+  - _suit: 0
+    _rank: 4
+    _sprite: {fileID: 21300000, guid: 4b43609b672e36b408f0896e8c10e2c7, type: 3}
+  - _suit: 0
+    _rank: 5
+    _sprite: {fileID: 21300000, guid: a227d82f36fd3f047936d9e24438d7fa, type: 3}
+  - _suit: 0
+    _rank: 6
+    _sprite: {fileID: 21300000, guid: fd00d1c25b6506a4dbcd4cfb86308032, type: 3}
+  - _suit: 0
+    _rank: 7
+    _sprite: {fileID: 21300000, guid: c6c35f7d33153f14d8ff8ad73c6cb7ae, type: 3}
+  - _suit: 0
+    _rank: 8
+    _sprite: {fileID: 21300000, guid: 3029faaddde0e6540acde5b67c862b72, type: 3}
+  - _suit: 0
+    _rank: 9
+    _sprite: {fileID: 21300000, guid: 4b5544f299a5f7a47b71e7a6cb041ba1, type: 3}
+  - _suit: 0
+    _rank: 10
+    _sprite: {fileID: 21300000, guid: 4b3a4b599d5de914b8117964f403083f, type: 3}
+  - _suit: 1
+    _rank: 14
+    _sprite: {fileID: 21300000, guid: bbb0c655318940a44a1ead0fd0e4fe74, type: 3}
+  - _suit: 1
+    _rank: 2
+    _sprite: {fileID: 21300000, guid: f15c09881739fab439210dda8ff12a9d, type: 3}
+  - _suit: 1
+    _rank: 3
+    _sprite: {fileID: 21300000, guid: 7e83785e73a8a63418719c9a1d04d62d, type: 3}
+  - _suit: 1
+    _rank: 4
+    _sprite: {fileID: 21300000, guid: ef42dae5feb171b4ab5128d2b2545ad9, type: 3}
+  - _suit: 1
+    _rank: 5
+    _sprite: {fileID: 21300000, guid: 528c122f20acbaf4fac08d0c8b769d99, type: 3}
+  - _suit: 1
+    _rank: 6
+    _sprite: {fileID: 21300000, guid: 8609860736fb07a4caf94ed98c23b1ad, type: 3}
+  - _suit: 1
+    _rank: 7
+    _sprite: {fileID: 21300000, guid: c257152165a743f47a4ef6cfa2f2e901, type: 3}
+  - _suit: 1
+    _rank: 8
+    _sprite: {fileID: 21300000, guid: a1eaea9305799284b8553f9851315b6e, type: 3}
+  - _suit: 1
+    _rank: 9
+    _sprite: {fileID: 21300000, guid: 82d3bba4d7fef2d48af1303b92d73e33, type: 3}
+  - _suit: 1
+    _rank: 10
+    _sprite: {fileID: 21300000, guid: 0555fb27d00a91e44b44378ac1a9f271, type: 3}
+  - _suit: 2
+    _rank: 14
+    _sprite: {fileID: 21300000, guid: edbdf3c6b945d23419330dc2bc1796da, type: 3}
+  - _suit: 2
+    _rank: 2
+    _sprite: {fileID: 21300000, guid: 3f03565ee12dbbc47b9c72d726529eb7, type: 3}
+  - _suit: 2
+    _rank: 3
+    _sprite: {fileID: 21300000, guid: 5db19d8fc01f7d64f9bc9c1fb6e8f105, type: 3}
+  - _suit: 2
+    _rank: 4
+    _sprite: {fileID: 21300000, guid: c70e3292970b3cc4a80b8c9550cef69c, type: 3}
+  - _suit: 2
+    _rank: 5
+    _sprite: {fileID: 21300000, guid: ba391ae7da60027418442a69a26b4947, type: 3}
+  - _suit: 2
+    _rank: 6
+    _sprite: {fileID: 21300000, guid: 1feae273465056348a90d25118af0be1, type: 3}
+  - _suit: 2
+    _rank: 7
+    _sprite: {fileID: 21300000, guid: 326a5f2777465df4fbb2a6e55ada75e2, type: 3}
+  - _suit: 2
+    _rank: 8
+    _sprite: {fileID: 21300000, guid: bc78d917658912b499110322e3865396, type: 3}
+  - _suit: 2
+    _rank: 9
+    _sprite: {fileID: 21300000, guid: 3a6579b4ab5354f4b86a64d408831af6, type: 3}
+  - _suit: 2
+    _rank: 10
+    _sprite: {fileID: 21300000, guid: e37c9e431af89504b838a24ddd1b076a, type: 3}
+  - _suit: 3
+    _rank: 14
+    _sprite: {fileID: 21300000, guid: ac2c4d570a1fc6b4fadd11e975cb9d22, type: 3}
+  - _suit: 3
+    _rank: 2
+    _sprite: {fileID: 21300000, guid: 8a7d703ed9309c449b47d30515a8c86b, type: 3}
+  - _suit: 3
+    _rank: 3
+    _sprite: {fileID: 21300000, guid: b302d0b7890defd4ba690859bb76b574, type: 3}
+  - _suit: 3
+    _rank: 4
+    _sprite: {fileID: 21300000, guid: 42c2c9eea42875345aa20f73bd8362c5, type: 3}
+  - _suit: 3
+    _rank: 5
+    _sprite: {fileID: 21300000, guid: 1cb42cc1b0df46047a914d9b6a6d5970, type: 3}
+  - _suit: 3
+    _rank: 6
+    _sprite: {fileID: 21300000, guid: 9d439199f66eb2c44a50a79feb6694b6, type: 3}
+  - _suit: 3
+    _rank: 7
+    _sprite: {fileID: 21300000, guid: ef125af66d244c74ba5b1572543f0cea, type: 3}
+  - _suit: 3
+    _rank: 8
+    _sprite: {fileID: 21300000, guid: b1241ab0b2b394e479d42854d35a1d2b, type: 3}
+  - _suit: 3
+    _rank: 9
+    _sprite: {fileID: 21300000, guid: c8ef3b14334696640882e2b321b4b0b5, type: 3}
+  - _suit: 3
+    _rank: 10
+    _sprite: {fileID: 21300000, guid: cbd9e3877ea57de42ac3a1d1c679754a, type: 3}
