@@ -22,6 +22,22 @@ namespace Poker_Card
         private Text _footerText;
         private Image _border;
         private Image _paper;
+        private GameObject _holoMask;
+        private Image _holoBand;
+        private float _holoTime;
+
+        // 홀로 스프라이트는 모든 카드가 같은 것을 쓴다.
+        private static Sprite _epicHolo;
+        private static Sprite _legendHolo;
+
+        [SerializeField] private float _holoPeriod = 3.2f;
+        [SerializeField] private float _holoBandWidthFactor = 1.6f;
+        [SerializeField] private float _holoBandHeightFactor = 1.8f;
+        [SerializeField] private float _holoTravelFactor = 1.1f;
+        [SerializeField] private float _holoTiltDegrees = 25f;
+        [SerializeField] private float _epicHoloOpacity = 0.9f;
+        [SerializeField] private float _legendHoloOpacity = 1f;
+        [SerializeField] private int _holoTextureWidth = 128;
 
         public RectTransform Rect => (RectTransform)transform;
 
@@ -63,7 +79,114 @@ namespace Poker_Card
             AddImage("DescriptionBox", root, new Vector2(0f, -h * 0.25f), new Vector2(w * 0.86f, h * 0.2f), new Color(0.85f, 0.84f, 0.8f, 1f));
             _descriptionText = AddText("Description", root, font, new Vector2(0f, -h * 0.25f), new Vector2(w * 0.8f, h * 0.19f), Mathf.RoundToInt(h * 0.046f), TextAnchor.MiddleLeft, FontStyle.Normal);
             _footerText = AddText("Footer", root, font, new Vector2(0f, -h * 0.4f), new Vector2(w * 0.86f, h * 0.06f), Mathf.RoundToInt(h * 0.048f), TextAnchor.MiddleLeft, FontStyle.Bold);
+
+            // 홀로 효과는 맨 위에 덮는다. 카드 종이 모양 밖으로 번지지 않도록 마스크 안에서만 띠가 움직인다.
+            var holoMask = AddImage("Holo", root, Vector2.zero, size - new Vector2(inset * 2f, inset * 2f), Color.clear);
+            holoMask.gameObject.AddComponent<RectMask2D>();
+            _holoMask = holoMask.gameObject;
+            _holoBand = AddImage("Band", holoMask.rectTransform, Vector2.zero, new Vector2(w * _holoBandWidthFactor, h * _holoBandHeightFactor), Color.white);
+            _holoBand.rectTransform.localRotation = Quaternion.Euler(0f, 0f, _holoTiltDegrees);
+            _holoMask.SetActive(false);
         }
+
+        private void Update()
+        {
+            Tick(Time.deltaTime);
+        }
+
+        // 프로토타입의 holo: 3.2초마다 빛 띠가 카드를 가로질러 흐른다. 테스트가 시간을 직접 넘길 수 있게 Tick을 연다.
+        public void Tick(float dt)
+        {
+            if (!_holoMask.activeSelf)
+            {
+                return;
+            }
+
+            _holoTime = (_holoTime + dt) % _holoPeriod;
+            float travel = Rect.sizeDelta.x * _holoTravelFactor;
+            _holoBand.rectTransform.anchoredPosition = new Vector2(Mathf.Lerp(travel, -travel, _holoTime / _holoPeriod), 0f);
+        }
+
+        private void SetHolo(EffectGrade grade)
+        {
+            bool shiny = grade == EffectGrade.Epic || grade == EffectGrade.Legend;
+            _holoMask.SetActive(shiny);
+            if (!shiny)
+            {
+                return;
+            }
+
+            bool legend = grade == EffectGrade.Legend;
+            if (legend)
+            {
+                _legendHolo = _legendHolo != null ? _legendHolo : CreateHoloSprite(LegendHoloStops);
+            }
+            else
+            {
+                _epicHolo = _epicHolo != null ? _epicHolo : CreateHoloSprite(EpicHoloStops);
+            }
+
+            _holoBand.sprite = legend ? _legendHolo : _epicHolo;
+            _holoBand.color = new Color(1f, 1f, 1f, legend ? _legendHoloOpacity : _epicHoloOpacity);
+        }
+
+        // 색 정지점(위치 0~1, 색) 목록으로 가로 그라디언트 한 줄을 만들어 늘려서 쓴다.
+        private Sprite CreateHoloSprite(HoloStop[] stops)
+        {
+            int width = _holoTextureWidth;
+            var texture = new Texture2D(width, 2, TextureFormat.RGBA32, false);
+            texture.wrapMode = TextureWrapMode.Clamp;
+            for (int x = 0; x < width; x++)
+            {
+                float position = (float)x / (width - 1);
+                Color color = Color.clear;
+                for (int i = 0; i < stops.Length - 1; i++)
+                {
+                    if (position >= stops[i].Position && position <= stops[i + 1].Position)
+                    {
+                        float t = Mathf.InverseLerp(stops[i].Position, stops[i + 1].Position, position);
+                        color = Color.Lerp(stops[i].Color, stops[i + 1].Color, t);
+                        break;
+                    }
+                }
+
+                texture.SetPixel(x, 0, color);
+                texture.SetPixel(x, 1, color);
+            }
+
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0, 0, width, 2), new Vector2(0.5f, 0.5f), 100f);
+        }
+
+        private readonly struct HoloStop
+        {
+            public readonly float Position;
+            public readonly Color Color;
+
+            public HoloStop(float position, Color color)
+            {
+                Position = position;
+                Color = color;
+            }
+        }
+
+        // 프로토타입 CSS의 linear-gradient 정지점. 끝은 투명으로 둔다.
+        private static readonly HoloStop[] EpicHoloStops =
+        {
+            new HoloStop(0.00f, new Color(0.69f, 0.42f, 1f, 0f)), new HoloStop(0.20f, new Color(0.69f, 0.42f, 1f, 0f)),
+            new HoloStop(0.32f, new Color(0.69f, 0.42f, 1f, 0.55f)), new HoloStop(0.38f, new Color(1f, 1f, 1f, 0.7f)),
+            new HoloStop(0.44f, new Color(0.69f, 0.42f, 1f, 0.5f)), new HoloStop(0.58f, new Color(0.69f, 0.42f, 1f, 0f)),
+            new HoloStop(1.00f, new Color(0.69f, 0.42f, 1f, 0f))
+        };
+
+        private static readonly HoloStop[] LegendHoloStops =
+        {
+            new HoloStop(0.00f, new Color(1f, 0.35f, 0.24f, 0f)), new HoloStop(0.12f, new Color(1f, 0.35f, 0.24f, 0f)),
+            new HoloStop(0.22f, new Color(1f, 0.35f, 0.24f, 0.45f)), new HoloStop(0.30f, new Color(1f, 0.88f, 0.54f, 0.75f)),
+            new HoloStop(0.35f, new Color(1f, 1f, 1f, 0.9f)), new HoloStop(0.42f, new Color(0.24f, 1f, 0.58f, 0.45f)),
+            new HoloStop(0.50f, new Color(0.16f, 0.42f, 0.74f, 0.5f)), new HoloStop(0.58f, new Color(0.69f, 0.42f, 1f, 0.5f)),
+            new HoloStop(0.70f, new Color(0.69f, 0.42f, 1f, 0f)), new HoloStop(1.00f, new Color(0.69f, 0.42f, 1f, 0f))
+        };
 
         // "6♠"처럼 숫자와 문양을 붙인 카드 코드. 확정 버튼과 미리보기에서 카드를 가리킬 때 쓴다.
         public static string GetCodeText(EffectCardData card)
@@ -104,6 +227,7 @@ namespace Poker_Card
             Color gradeColor, string gradeLetter)
         {
             string categoryLabel = GetCategoryLabel(card.Category);
+            SetHolo(card.Grade);
             _border.color = gradeColor;
             _suitText.text = SuitGlyphs[(int)card.Suit].ToString();
             _suitText.color = card.Suit == Suit.Heart || card.Suit == Suit.Diamond ? new Color(0.78f, 0.12f, 0.1f, 1f) : new Color(0.1f, 0.1f, 0.1f, 1f);
