@@ -12,6 +12,7 @@ namespace Poker_Card
         [SerializeField] private PokerRerollButton _rerollButton;
         [SerializeField] private int _maxSelectCount = 5;
         [SerializeField] private int _rerollsPerRound = 1;
+        [SerializeField] private float _dealStagger = 0.07f;
 
         private PokerDeck _deck;
         private PokerHandSelection _selection;
@@ -98,6 +99,7 @@ namespace Poker_Card
             for (int i = 0; i < _slots.Length; i++)
             {
                 _slots[i].SetSprite(_hand[i].Sprite);
+                _slots[i].PlayDeal(i * _dealStagger);
             }
 
             RefreshView();
@@ -106,6 +108,15 @@ namespace Poker_Card
             if (wasSubmitted)
             {
                 SubmitCancelled?.Invoke();
+            }
+        }
+
+        // 패는 그대로 두고 나눠 주는 연출만 다시 보여 준다.
+        public void ReplayDeal()
+        {
+            for (int i = 0; i < _slots.Length; i++)
+            {
+                _slots[i].PlayDeal(i * _dealStagger);
             }
         }
 
