@@ -24,6 +24,9 @@ namespace Poker_Card
         private EffectBattleCoordinator.SettleResult _result;
         private float _elapsed;
         private bool _counting;
+        private bool _directed;
+        private bool _released;
+        private bool _hasPending;
         private int _shownPlayer = -1;
         private int _shownEnemy = -1;
 
@@ -81,6 +84,8 @@ namespace Poker_Card
             if (_coordinator.IsRoundOpen)
             {
                 _counting = false;
+                _hasPending = false;
+                _released = false;
                 transform.localScale = Vector3.one;
                 _text.text = string.Empty;
             }
@@ -121,9 +126,39 @@ namespace Poker_Card
             }
         }
 
+        public float CountDuration => _countDuration;
+
+        // 연출 감독이 있으면 패시브 발동 연출이 끝난 뒤에 숫자를 올리도록 시작을 맡긴다. 감독이 없으면 정산 즉시 올린다.
+        public void SetDirected(bool directed)
+        {
+            _directed = directed;
+        }
+
+        // 감독이 호출하는 시작 신호. 결과가 아직 안 왔으면(같은 정산 안에서 신호가 먼저 올 수 있다) 도착하는 즉시 시작한다.
+        public void BeginCount()
+        {
+            _released = true;
+            if (_hasPending)
+            {
+                StartCount();
+            }
+        }
+
         private void OnSettled(EffectBattleCoordinator.SettleResult result)
         {
             _result = result;
+            _hasPending = true;
+            _text.text = string.Empty;
+            if (!_directed || _released)
+            {
+                StartCount();
+            }
+        }
+
+        private void StartCount()
+        {
+            _hasPending = false;
+            _released = false;
             _elapsed = 0f;
             _counting = _countDuration > 0f;
             if (_counting)
@@ -132,7 +167,7 @@ namespace Poker_Card
             }
             else
             {
-                Render(result.PlayerScore, result.EnemyScore);
+                Render(_result.PlayerScore, _result.EnemyScore);
             }
         }
 

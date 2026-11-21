@@ -59,10 +59,15 @@ namespace Effect_Card
             public PokerHandResult PlayerHand { get; }
             public PokerHandResult EnemyHand { get; }
             public BattleWinner Winner { get; }
+            public IReadOnlyList<EffectCardData> PlayerPassives { get; }
+            public IReadOnlyList<EffectCardData> EnemyPassives { get; }
 
             public SettlePreview(int playerScore, int enemyScore, bool playerCrit, bool enemyCrit,
-                PokerHandResult playerHand, PokerHandResult enemyHand, BattleWinner winner)
+                PokerHandResult playerHand, PokerHandResult enemyHand, BattleWinner winner,
+                IReadOnlyList<EffectCardData> playerPassives, IReadOnlyList<EffectCardData> enemyPassives)
             {
+                PlayerPassives = playerPassives;
+                EnemyPassives = enemyPassives;
                 PlayerScore = playerScore;
                 EnemyScore = enemyScore;
                 PlayerCrit = playerCrit;
@@ -213,7 +218,8 @@ namespace Effect_Card
                 : enemyScore > playerScore ? BattleWinner.Enemy
                 : BattleWinner.Draw;
 
-            ScoresResolved?.Invoke(new SettlePreview(playerScore, enemyScore, playerCrit, enemyCrit, playerHand, enemyHand, winner));
+            ScoresResolved?.Invoke(new SettlePreview(playerScore, enemyScore, playerCrit, enemyCrit, playerHand, enemyHand, winner,
+                playerCalc.ContributingPassives, enemyCalc.ContributingPassives));
 
             int totalDamage = 0;
             if (winner != BattleWinner.Draw)

@@ -50,8 +50,13 @@ namespace Effect_Card
             public float CritChance { get; }
             public int FinalScore { get; }
 
-            public Result(int baseScore, int bonus, float multiplier, float critChance, int finalScore)
+            // 점수에 실제로 보너스를 더한 패시브. 연출이 "발동한" 카드만 밝히는 데 쓴다.
+            public IReadOnlyList<EffectCardData> ContributingPassives { get; }
+
+            public Result(int baseScore, int bonus, float multiplier, float critChance, int finalScore,
+                IReadOnlyList<EffectCardData> contributingPassives = null)
             {
+                ContributingPassives = contributingPassives;
                 BaseScore = baseScore;
                 Bonus = bonus;
                 Multiplier = multiplier;
@@ -93,16 +98,24 @@ namespace Effect_Card
                 }
             }
 
+            var contributing = new List<EffectCardData>();
             foreach (var card in input.ActivePassives)
             {
+                int cardBonus = 0;
                 foreach (var effect in card.Effects)
                 {
-                    bonus += GetPassiveBonus(effect, input);
+                    cardBonus += GetPassiveBonus(effect, input);
+                }
+
+                bonus += cardBonus;
+                if (cardBonus > 0)
+                {
+                    contributing.Add(card);
                 }
             }
 
             int finalScore = RoundHalfUp((input.BaseScore + bonus) * multiplier);
-            return new Result(input.BaseScore, bonus, multiplier, Mathf.Min(critChance, _ruleSet.CritChanceCap), finalScore);
+            return new Result(input.BaseScore, bonus, multiplier, Mathf.Min(critChance, _ruleSet.CritChanceCap), finalScore, contributing);
         }
 
         public int ApplyCrit(int score)

@@ -26,6 +26,24 @@ namespace Poker_Card
             Unsubscribe();
         }
 
+        // lit이 null이면 모두 원래대로, 아니면 그 카드만 밝히고 나머지는 흐리게 한다.
+        public void SetSpotlight(EffectCardData lit)
+        {
+            if (_coordinator == null)
+            {
+                return;
+            }
+
+            var equipped = _coordinator.Enemy.Inventory.Equipped;
+            for (int i = 0; i < _slots.Length; i++)
+            {
+                bool hasCard = i < equipped.Count;
+                var state = lit == null || !hasCard ? EffectCardSlotView.SpotlightState.Normal
+                    : equipped[i] == lit ? EffectCardSlotView.SpotlightState.Lit : EffectCardSlotView.SpotlightState.Dimmed;
+                _slots[i].SetSpotlight(state);
+            }
+        }
+
         // 상대가 액티브를 썼을 때 그 카드 자리에서 연출이 터지도록 슬롯 위치를 알려 준다. 없으면 null이다.
         public RectTransform GetSlotRect(EffectCardData card)
         {

@@ -265,6 +265,28 @@ namespace Poker_Card
         [SerializeField] private UiFxGetCard _getCard;
         [SerializeField] private int _getCardActiveRounds = 3;
 
+        [Header("점수 카운트업 연결")]
+        [SerializeField] private EffectSettleSummaryView _settleSummary;
+
+        [Header("패시브 발동 연출")]
+        [SerializeField] private float _passiveStep = 0.38f;
+        [SerializeField] private float _passiveTail = 0.5f;
+        [SerializeField] private string _passiveFormat = "효과 발동! {0}";
+        [SerializeField] private string _epicPassiveText = "◆ EPIC";
+        [SerializeField] private string _legendPassiveText = "★ LEGENDARY";
+        [SerializeField] private float _passiveRingSize = 160f;
+        [SerializeField] private float _passiveRingDuration = 0.45f;
+        [SerializeField] private float _passiveHighRingSize = 300f;
+        [SerializeField] private float _passiveHighRingDuration = 0.6f;
+        [SerializeField] private int _passiveBurstCount = 10;
+        [SerializeField] private float _passiveBurstSpeed = 70f;
+        [SerializeField] private int _passiveHighBurstCount = 26;
+        [SerializeField] private float _passiveHighBurstSpeed = 150f;
+        [SerializeField] private float _passiveHighFlashOpacity = 0.3f;
+        [SerializeField] private float _passiveHighFlashDuration = 0.26f;
+        [SerializeField] private float _passivePopupLift = 60f;
+        [SerializeField] private float _passiveRarityLift = 120f;
+
         [Header("히트스톱 (초)")]
         [SerializeField] private float _lightHitStop = 0.045f;
         [SerializeField] private float _heavyHitStop = 0.1f;
@@ -352,6 +374,7 @@ namespace Poker_Card
         // 정산 중 일어나는 피해 연출을 이 시간만큼 미룬다. 점수 연출이 끝난 뒤에 맞는 모습이 나오게 하려는 것이다.
         private float _hitDelay;
         private bool _started;
+        private bool _passiveFlashed;
         private float _hitStopRemaining;
         private float _savedTimeScale = 1f;
 
@@ -363,6 +386,11 @@ namespace Poker_Card
             _enemyWatcher = new SideWatcher(this, state.Enemy, false);
             _coordinator = _controller.Coordinator;
             _started = true;
+            if (_settleSummary != null)
+            {
+                _settleSummary.SetDirected(true);
+            }
+
             Subscribe();
 
             // 컨트롤러가 먼저 Start해 첫 라운드 알림이 이미 지나갔다면 지금 라운드를 직접 보여 준다.
@@ -377,6 +405,10 @@ namespace Poker_Card
             if (_started)
             {
                 Subscribe();
+                if (_settleSummary != null)
+                {
+                    _settleSummary.SetDirected(true);
+                }
             }
         }
 
@@ -384,6 +416,10 @@ namespace Poker_Card
         {
             Unsubscribe();
             EndHitStop();
+            if (_settleSummary != null)
+            {
+                _settleSummary.SetDirected(false);
+            }
         }
 
         private void Update()
@@ -530,6 +566,7 @@ namespace Poker_Card
             _clock = 0f;
             _hitDelay = 0f;
             _cutInBusyFor = 0f;
+            ClearSpotlight();
             PlayRoundBanner(round);
         }
 
@@ -591,6 +628,22 @@ namespace Poker_Card
                 time += _bannerGap;
             }
 
+            time = SchedulePassiveFlash(time, true, preview.PlayerPassives);
+            time = SchedulePassiveFlash(time, false, preview.EnemyPassives);
+            if (_passiveFlashed)
+            {
+                time += _passiveTail;
+                Schedule(time, ClearSpotlight);
+                _passiveFlashed = false;
+            }
+
+            // 프로토타입 순서: 패시브 발동 뒤에 점수 숫자가 올라가고, 그 다음에 치명타가 터진다.
+            if (_settleSummary != null)
+            {
+                Schedule(time, _settleSummary.BeginCount);
+                time += _settleSummary.CountDuration;
+            }
+
             if (preview.PlayerCrit)
             {
                 Schedule(time, () => PlayCrit(true, preview.PlayerScore));
@@ -619,6 +672,89 @@ namespace Poker_Card
             }
 
             _hitDelay = time;
+        }
+
+        // 프로토타입의 passiveFlash: 발동하는 패시브를 하나씩 밝히며 링과 불꽃을 터뜨린다. 끝난 시각을 돌려준다.
+        private float SchedulePassiveFlash(float time, bool isPlayer, IReadOnlyList<EffectCardData> passives)
+        {
+            if (passives == null)
+            {
+                return time;
+            }
+
+            int order = 0;
+            for (int i = 0; i < passives.Count; i++)
+            {
+                var card = passives[i];
+                if (card == null || card.IsActive)
+                {
+                    continue;
+                }
+
+                var slot = isPlayer ? (_handView != null ? _handView.GetSlotRect(card) : null)
+                    : (_enemyView != null ? _enemyView.GetSlotRect(card) : null);
+                if (slot == null)
+                {
+                    continue;
+                }
+
+                order++;
+                int number = order;
+                Schedule(time, () => PlayPassiveFlash(isPlayer, card, slot, number));
+                time += _passiveStep;
+                _passiveFlashed = true;
+            }
+
+            return time;
+        }
+
+        private void PlayPassiveFlash(bool isPlayer, EffectCardData card, RectTransform slot, int number)
+        {
+            if (isPlayer)
+            {
+                _handView.SetSpotlight(card);
+                if (_enemyView != null)
+                {
+                    _enemyView.SetSpotlight(null);
+                }
+            }
+            else
+            {
+                _enemyView.SetSpotlight(card);
+                if (_handView != null)
+                {
+                    _handView.SetSpotlight(null);
+                }
+            }
+
+            bool high = card.Grade == EffectGrade.Epic || card.Grade == EffectGrade.Legend;
+            Color color = card.Grade == EffectGrade.Legend ? _legendColor : card.Grade == EffectGrade.Epic ? _epicColor : _wildColor;
+            Vector2 position = _spawner.ToLocal(slot);
+            _spawner.Ring(position, color, high ? _passiveHighRingSize : _passiveRingSize, high ? _passiveHighRingDuration : _passiveRingDuration);
+            _spawner.Burst(position, new[] { color, Color.white }, high ? _passiveHighBurstCount : _passiveBurstCount,
+                high ? _passiveHighBurstSpeed : _passiveBurstSpeed);
+            _spawner.Popup(position + Vector2.up * _passivePopupLift, string.Format(_passiveFormat, number), color, _supportFontSize);
+            Pulse(_activationPulse);
+
+            if (high)
+            {
+                _fx.Flash(color, _passiveHighFlashOpacity, _passiveHighFlashDuration);
+                _spawner.Popup(position + Vector2.up * _passiveRarityLift, card.Grade == EffectGrade.Legend ? _legendPassiveText : _epicPassiveText,
+                    color, _supportFontSize);
+            }
+        }
+
+        private void ClearSpotlight()
+        {
+            if (_handView != null)
+            {
+                _handView.SetSpotlight(null);
+            }
+
+            if (_enemyView != null)
+            {
+                _enemyView.SetSpotlight(null);
+            }
         }
 
         // 정산이 끝나면(피해 적용까지 마친 뒤) 지연을 풀어서, 이후 사건은 바로 연출한다.
