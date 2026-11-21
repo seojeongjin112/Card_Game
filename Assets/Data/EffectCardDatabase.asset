@@ -530,7 +530,7 @@ MonoBehaviour:
       _value: 1
       _chance: 100
       _turns: 0
-      _limit: 0
+      _limit: 10
   - _suit: 3
     _rank: 12
     _displayName: "\uD654\uC2E0"
@@ -630,7 +630,7 @@ MonoBehaviour:
       1\uD134 \uC801\uC6A9"
     _effects:
     - _kind: 16
-      _value: 1
+      _value: 2
       _chance: 100
       _turns: 1
       _limit: 0
@@ -745,4 +745,4 @@ MonoBehaviour:
       _value: 3
       _chance: 100
       _turns: 0
-      _limit: 0
+      _limit: 2

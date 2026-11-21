@@ -15,6 +15,11 @@ namespace Effect_Card
         private readonly EffectRuleSet _ruleSet;
         private readonly Dictionary<EffectCardData, ActiveState> _states = new Dictionary<EffectCardData, ActiveState>();
 
+        // 마법 거울이 복제할 대상. 거울 자신은 기록하지 않아 거울을 연달아 써도 원본 효과가 유지된다.
+        public EffectCardData LastUsed { get; private set; }
+
+        public IReadOnlyCollection<EffectCardData> StartedCards => _states.Keys;
+
         public event Action<EffectCardData> Used;
         public event Action<EffectCardData> Expired;
 
@@ -59,8 +64,22 @@ namespace Effect_Card
             }
 
             state.UsedThisRound = true;
+            if (!card.HasEffect(Core.EffectKind.Mirror))
+            {
+                LastUsed = card;
+            }
+
             Used?.Invoke(card);
             return true;
+        }
+
+        // 순환 패시브가 발동하면 같은 라운드에 한 번 더 쓸 수 있게 사용 표시만 되돌린다. 남은 라운드는 그대로다.
+        public void ResetUse(EffectCardData card)
+        {
+            if (_states.TryGetValue(card, out var state))
+            {
+                state.UsedThisRound = false;
+            }
         }
 
         public void StartRound()
