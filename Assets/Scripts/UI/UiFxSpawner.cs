@@ -54,16 +54,49 @@ namespace Poker_Card
         [SerializeField] private Vector2 _streamSizeRange = new Vector2(12f, 24f);
         [SerializeField] private float _streamSpread = 30f;
 
+        [Header("별·방울·반짝임 (프로토타입 fx-star / fx-bubble / fx-spark)")]
+        [SerializeField] private int _shapeTextureSize = 128;
+        [SerializeField] private float _starLife = 0.5f;
+        [SerializeField] private float _starTurnDegrees = 45f;
+        [SerializeField] private float _starStartScale = 0.2f;
+        [SerializeField] private float _starEndScale = 1f;
+        [SerializeField] private float _starFadeStart = 0.3f;
+        [SerializeField] private float _bubbleSizeFactor = 1.15f;
+        [SerializeField] private float _bubbleLife = 0.95f;
+        [SerializeField] private float _bubbleStartScale = 0.6f;
+        [SerializeField] private float _bubbleEndScale = 1.15f;
+        [SerializeField] private float _bubbleFadeStart = 0.7f;
+        [SerializeField] private string[] _sparkGlyphs = { "✦", "+", "✧", "·" };
+        [SerializeField] private Vector2 _sparkSizeRange = new Vector2(12f, 26f);
+        [SerializeField] private float _sparkRiseSpeed = 55f;
+        [SerializeField] private float _sparkLife = 1.3f;
+        [SerializeField] private float _sparkStartScale = 0.4f;
+        [SerializeField] private float _sparkEndScale = 1.2f;
+        [SerializeField] private float _sparkFadeStart = 0.5f;
+
         private readonly List<FxItem> _active = new List<FxItem>();
         private readonly Stack<FxItem> _imagePool = new Stack<FxItem>();
         private readonly Stack<FxItem> _textPool = new Stack<FxItem>();
         private Sprite _ringSprite;
+        private Sprite _starSprite;
+        private Sprite _bubbleSprite;
+
+        // 프로토타입 CSS clip-path(16각 별)의 꼭짓점. 0~1 좌표이며 위쪽이 y=0이다.
+        private static readonly Vector2[] StarPolygon =
+        {
+            new Vector2(0.50f, 0f), new Vector2(0.57f, 0.30f), new Vector2(0.85f, 0.15f), new Vector2(0.70f, 0.43f),
+            new Vector2(1f, 0.50f), new Vector2(0.70f, 0.57f), new Vector2(0.85f, 0.85f), new Vector2(0.57f, 0.70f),
+            new Vector2(0.50f, 1f), new Vector2(0.43f, 0.70f), new Vector2(0.15f, 0.85f), new Vector2(0.30f, 0.57f),
+            new Vector2(0f, 0.50f), new Vector2(0.30f, 0.43f), new Vector2(0.15f, 0.15f), new Vector2(0.43f, 0.30f)
+        };
 
         public int ActiveCount => _active.Count;
 
         private void Awake()
         {
             _ringSprite = CreateRingSprite();
+            _starSprite = CreateStarSprite();
+            _bubbleSprite = CreateBubbleSprite();
             enabled = false;
         }
 
@@ -131,6 +164,7 @@ namespace Poker_Card
             var label = (Text)item.Graphic;
             label.text = text;
             label.fontSize = fontSize;
+            label.fontStyle = FontStyle.Normal;
             Place(item, position, new Vector2(fontSize * 8f, fontSize * 1.6f), color);
             item.Velocity = new Vector2(0f, _popupRiseSpeed);
             item.Life = _popupLife;
@@ -249,6 +283,71 @@ namespace Poker_Card
             item.FadeStart = 0.85f;
         }
 
+        // 프로토타입의 fx-star: 타격 순간 중심에서 번쩍이며 커지고 도는 별 모양.
+        public void Star(Vector2 position, Color color, float size)
+        {
+            var item = Take(false);
+            if (item == null)
+            {
+                return;
+            }
+
+            item.Graphic.GetComponent<Image>().sprite = _starSprite;
+            Place(item, position, new Vector2(size, size), color);
+            item.RotationVelocity = _starTurnDegrees / _starLife;
+            item.Life = _starLife;
+            item.StartScale = _starStartScale;
+            item.EndScale = _starEndScale;
+            item.FadeStart = _starFadeStart;
+        }
+
+        // 프로토타입의 fx-bubble: 실드를 얻은 대상 위에 동그란 막이 부풀었다 사라진다.
+        public void Bubble(RectTransform target, Color color)
+        {
+            var item = Take(false);
+            if (item == null)
+            {
+                return;
+            }
+
+            float size = Mathf.Max(target.rect.width * target.lossyScale.x, target.rect.height * target.lossyScale.y) / _layer.lossyScale.x * _bubbleSizeFactor;
+            item.Graphic.GetComponent<Image>().sprite = _bubbleSprite;
+            Place(item, ToLocal(target), new Vector2(size, size), color);
+            item.Life = _bubbleLife;
+            item.StartScale = _bubbleStartScale;
+            item.EndScale = _bubbleEndScale;
+            item.FadeStart = _bubbleFadeStart;
+        }
+
+        // 프로토타입의 fx-spark: 대상의 아래쪽에서 작은 반짝임 글자가 떠오른다(회복·정화).
+        public void Sparkle(RectTransform target, Color color, int count)
+        {
+            float width = target.rect.width * target.lossyScale.x / _layer.lossyScale.x;
+            float height = target.rect.height * target.lossyScale.y / _layer.lossyScale.y;
+            Vector2 center = ToLocal(target);
+            for (int i = 0; i < count; i++)
+            {
+                var item = Take(true);
+                if (item == null)
+                {
+                    return;
+                }
+
+                var label = (Text)item.Graphic;
+                label.text = _sparkGlyphs[Random.Range(0, _sparkGlyphs.Length)];
+                label.fontStyle = FontStyle.Bold;
+                int size = Mathf.RoundToInt(Random.Range(_sparkSizeRange.x, _sparkSizeRange.y));
+                label.fontSize = size;
+                Vector2 position = new Vector2(center.x + (Random.value - 0.5f) * width, center.y - height / 2f + height * (0.4f + Random.value * 0.6f));
+                Place(item, position, new Vector2(size * 2f, size * 2f), color);
+                item.Velocity = new Vector2(0f, _sparkRiseSpeed);
+                item.Life = _sparkLife;
+                item.StartScale = _sparkStartScale;
+                item.EndScale = _sparkEndScale;
+                item.FadeStart = _sparkFadeStart;
+            }
+        }
+
         public void Tick(float dt)
         {
             for (int i = _active.Count - 1; i >= 0; i--)
@@ -339,6 +438,67 @@ namespace Poker_Card
             item.Rect.sizeDelta = size;
             item.Color = color;
             item.Graphic.color = color;
+        }
+
+        private Sprite CreateStarSprite()
+        {
+            int size = _shapeTextureSize;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    // 텍스처 y는 위로 갈수록 커서 폴리곤의 위쪽(y=0)과 뒤집어 비교한다.
+                    var point = new Vector2((x + 0.5f) / size, 1f - (y + 0.5f) / size);
+                    texture.SetPixel(x, y, IsInsidePolygon(point) ? Color.white : Color.clear);
+                }
+            }
+
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f);
+        }
+
+        // 가운데는 비고 가장자리로 갈수록 진해지는 방울에 선명한 테두리를 둘렀다.
+        private Sprite CreateBubbleSprite()
+        {
+            int size = _shapeTextureSize;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            float center = (size - 1) / 2f;
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float distance = Vector2.Distance(new Vector2(x, y), new Vector2(center, center)) / center;
+                    float alpha = 0f;
+                    if (distance <= 1f)
+                    {
+                        alpha = Mathf.Lerp(0f, 0.45f, Mathf.InverseLerp(0.52f, 1f, distance));
+                        alpha = Mathf.Max(alpha, Mathf.InverseLerp(0.9f, 0.94f, distance));
+                        alpha *= 1f - Mathf.InverseLerp(0.97f, 1f, distance);
+                    }
+
+                    texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
+                }
+            }
+
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f);
+        }
+
+        private static bool IsInsidePolygon(Vector2 point)
+        {
+            bool inside = false;
+            for (int i = 0, j = StarPolygon.Length - 1; i < StarPolygon.Length; j = i++)
+            {
+                var a = StarPolygon[i];
+                var b = StarPolygon[j];
+                if ((a.y > point.y) != (b.y > point.y) && point.x < (b.x - a.x) * (point.y - a.y) / (b.y - a.y) + a.x)
+                {
+                    inside = !inside;
+                }
+            }
+
+            return inside;
         }
 
         private Sprite CreateRingSprite()

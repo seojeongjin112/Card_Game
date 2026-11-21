@@ -122,7 +122,6 @@ namespace Poker_Card
         [SerializeField] private Color _playerFlashColor = new Color(1f, 0.16f, 0.16f, 1f);
         [SerializeField] private Color _enemyFlashColor = Color.white;
         [SerializeField] private Color[] _hitBurstColors = { Color.white, new Color(1f, 0.88f, 0.54f, 1f), new Color(1f, 0.35f, 0.24f, 1f) };
-        [SerializeField] private Color[] _healBurstColors = { new Color(0.44f, 1f, 0.66f, 1f), Color.white };
 
         [Header("피해 연출 세기 (프로토타입 값)")]
         [SerializeField] private string _damageFormat = "-{0}";
@@ -151,10 +150,6 @@ namespace Poker_Card
         [SerializeField] private int _damageFontSize = 52;
         [SerializeField] private int _heavyDamageFontSize = 76;
         [SerializeField] private int _supportFontSize = 40;
-        [SerializeField] private int _healBurstCount = 12;
-        [SerializeField] private float _healBurstSpeed = 110f;
-        [SerializeField] private float _shieldRingSize = 300f;
-        [SerializeField] private float _shieldRingDuration = 0.5f;
 
         [Header("정산 연출 순서와 시간")]
         [SerializeField] private float _bannerGap = 1.15f;
@@ -264,6 +259,18 @@ namespace Poker_Card
         [Header("획득 화면 (프로토타입의 가운데 카드)")]
         [SerializeField] private UiFxGetCard _getCard;
         [SerializeField] private int _getCardActiveRounds = 3;
+
+        [Header("별·방울·반짝임 크기")]
+        [SerializeField] private float _hitStarBase = 240f;
+        [SerializeField] private float _hitStarPerRatio = 400f;
+        [SerializeField] private float _hitInnerRingBase = 200f;
+        [SerializeField] private float _hitInnerRingPerRatio = 300f;
+        [SerializeField] private float _hitInnerRingDuration = 0.38f;
+        [SerializeField] private float _collisionStarSize = 260f;
+        [SerializeField] private float _critStarSize = 220f;
+        [SerializeField] private float _legendRevealStarSize = 320f;
+        [SerializeField] private Color _healSparkleColor = new Color(0.44f, 1f, 0.66f, 1f);
+        [SerializeField] private int _healSparkleCount = 22;
 
         [Header("점수 카운트업 연결")]
         [SerializeField] private EffectSettleSummaryView _settleSummary;
@@ -797,7 +804,9 @@ namespace Poker_Card
             _fx.Flash(_critFlashColor, _critFlashOpacity, _critFlashDuration);
             _fx.Shake(_critShakePower);
             _fx.ShowBanner(_critText, string.Format(_critSubFormat, isPlayer ? _playerLabel : _enemyLabel, score), _critColor, false);
-            _spawner.Ring(_spawner.ToLocal(isPlayer ? _playerHud : _enemyHud), _critFlashColor, _collisionRingSize, _collisionRingDuration);
+            Vector2 critPosition = _spawner.ToLocal(isPlayer ? _playerHud : _enemyHud);
+            _spawner.Ring(critPosition, _critFlashColor, _collisionRingSize, _collisionRingDuration);
+            _spawner.Star(critPosition, _critFlashColor, _critStarSize);
         }
 
         private void Pulse(float amount)
@@ -815,6 +824,7 @@ namespace Poker_Card
             _fx.Flash(Color.white, _collisionFlashOpacity, _collisionFlashDuration);
             _fx.Shake(_collisionShakePower);
             _spawner.Ring(center, Color.white, _collisionRingSize, _collisionRingDuration);
+            _spawner.Star(center, _critFlashColor, _collisionStarSize);
             _spawner.Burst(center, _hitBurstColors, _collisionBurstCount, _collisionBurstSpeed);
         }
 
@@ -852,6 +862,8 @@ namespace Poker_Card
             _spawner.Popup(position, string.Format(_damageFormat, amount), isPlayer ? _playerHitColor : _enemyHitColor,
                 heavy ? _heavyDamageFontSize : _damageFontSize);
             _spawner.Ring(position, isPlayer ? _playerHitColor : _enemyHitColor, _ringBaseSize + ratio * _ringSizePerRatio, _ringDuration);
+            _spawner.Ring(position, Color.white, _hitInnerRingBase + ratio * _hitInnerRingPerRatio, _hitInnerRingDuration);
+            _spawner.Star(position, isPlayer ? _playerHitColor : _enemyHitColor, _hitStarBase + ratio * _hitStarPerRatio);
             _spawner.Burst(position, _hitBurstColors,
                 Mathf.Min(_burstMaxCount, _burstBaseCount + Mathf.RoundToInt(ratio * _burstCountPerRatio)),
                 _burstBaseSpeed + ratio * _burstSpeedPerRatio);
@@ -1052,6 +1064,7 @@ namespace Poker_Card
 
             if (legend)
             {
+                _spawner.Star(position, accent, _legendRevealStarSize);
                 _fx.Shake(_legendRevealShake);
             }
         }
@@ -1060,14 +1073,14 @@ namespace Poker_Card
         {
             Vector2 position = _spawner.ToLocal(isPlayer ? _playerHud : _enemyHud);
             _spawner.Popup(position, string.Format(_healFormat, amount), _healColor, _supportFontSize);
-            _spawner.Burst(position, _healBurstColors, _healBurstCount, _healBurstSpeed);
+            _spawner.Sparkle(isPlayer ? _playerHud : _enemyHud, _healSparkleColor, _healSparkleCount);
         }
 
         private void PlayShield(bool isPlayer, int amount, string format)
         {
             Vector2 position = _spawner.ToLocal(isPlayer ? _playerHud : _enemyHud);
             _spawner.Popup(position, string.Format(format, amount), _shieldColor, _supportFontSize);
-            _spawner.Ring(position, _shieldColor, _shieldRingSize, _shieldRingDuration);
+            _spawner.Bubble(isPlayer ? _playerHud : _enemyHud, _shieldColor);
         }
     }
 }
