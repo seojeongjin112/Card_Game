@@ -38,6 +38,33 @@ namespace Effect_Card
             return null;
         }
 
+        // 덱 편집 화면이 생기기 전까지 양쪽 덱을 규칙 안에서 무작위로 채우는 데 쓴다.
+        public List<EffectCardData> BuildRandomDeck(IReadOnlyList<EffectCardData> allCards)
+        {
+            var shuffled = new List<EffectCardData>(allCards);
+            for (int i = shuffled.Count - 1; i > 0; i--)
+            {
+                int j = UnityEngine.Random.Range(0, i + 1);
+                (shuffled[i], shuffled[j]) = (shuffled[j], shuffled[i]);
+            }
+
+            var deck = new List<EffectCardData>();
+            foreach (var card in shuffled)
+            {
+                if (CanAdd(deck, card))
+                {
+                    deck.Add(card);
+                }
+
+                if (deck.Count >= _ruleSet.DeckMax)
+                {
+                    break;
+                }
+            }
+
+            return deck;
+        }
+
         public bool CanAdd(IReadOnlyList<EffectCardData> deck, EffectCardData card)
         {
             return GetRejectReason(deck, card) == null;

@@ -134,6 +134,19 @@ namespace Effect_Card
             Changed?.Invoke();
         }
 
+        // 새 게임을 시작할 때 전투 중에 쌓인 모든 상태를 한 번에 되돌린다.
+        public void Reset()
+        {
+            Hp = MaxHp;
+            Shield = 0;
+            IsImmune = false;
+            UndyingUsed = false;
+            StormRounds = 0;
+            HasPendingConfuse = false;
+            _dots.Clear();
+            Changed?.Invoke();
+        }
+
         public void SurviveWithOneHp()
         {
             Hp = 1;
