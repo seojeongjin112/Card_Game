@@ -28,7 +28,10 @@ namespace Poker_Card
         [SerializeField] private EnemyEffectView _enemyEffectView;
         [SerializeField] private EffectSettleSummaryView _settleSummaryView;
         [SerializeField] private EffectPileView _effectPileView;
+        [SerializeField] private BattleProgressView _progressView;
+        [SerializeField] private EffectBattleLogView _effectLogView;
 
+        private int _round;
         private PokerHandEvaluator _evaluator;
         private EnemyPokerHand _enemy;
         private BattleState _state;
@@ -69,6 +72,11 @@ namespace Poker_Card
             if (_effectPileView != null)
             {
                 _effectPileView.gameObject.SetActive(false);
+            }
+
+            if (_effectLogView != null)
+            {
+                _effectLogView.gameObject.SetActive(false);
             }
 
             if (!_useEffects)
@@ -115,6 +123,12 @@ namespace Poker_Card
                 _effectPileView.gameObject.SetActive(true);
                 _effectPileView.Bind(_coordinator);
             }
+
+            if (_effectLogView != null)
+            {
+                _effectLogView.gameObject.SetActive(true);
+                _effectLogView.Bind(_coordinator);
+            }
         }
 
         private void OnEnable()
@@ -124,6 +138,12 @@ namespace Poker_Card
             _resultView.SettleClicked += OnSettleClicked;
             _resultView.NextClicked += OnNextClicked;
             _state.Changed += RefreshHp;
+
+            // 드래프트가 닫히면 단계가 "전투 패 구성"으로 넘어가야 하므로 조정자의 변경 알림도 받는다.
+            if (_coordinator != null)
+            {
+                _coordinator.Changed += RefreshProgress;
+            }
         }
 
         private void OnDisable()
@@ -133,6 +153,11 @@ namespace Poker_Card
             _resultView.SettleClicked -= OnSettleClicked;
             _resultView.NextClicked -= OnNextClicked;
             _state.Changed -= RefreshHp;
+
+            if (_coordinator != null)
+            {
+                _coordinator.Changed -= RefreshProgress;
+            }
         }
 
         // 플레이어의 첫 패는 PokerHandView가 직접 나누므로 여기서는 상대 패만 나눈다.
@@ -142,19 +167,23 @@ namespace Poker_Card
             _enemyHandView.ShowBacks();
             _resultView.ShowRoundStart();
             RefreshHp();
+            _round = 1;
             StartEffectRound();
+            RefreshProgress();
         }
 
         private void OnHandSubmitted(IReadOnlyList<PokerCardData> cards)
         {
             _playerResult = _evaluator.Evaluate(cards);
             _resultView.SetSettleAvailable(true);
+            RefreshProgress();
         }
 
         private void OnSubmitCancelled()
         {
             _playerResult = null;
             _resultView.SetSettleAvailable(false);
+            RefreshProgress();
         }
 
         private void OnSettleClicked()
@@ -188,6 +217,7 @@ namespace Poker_Card
             _enemyHandView.Reveal(_enemy.Hand, _enemy.Best.Cards);
             _resultView.ShowRoundResult(outcome, enemyHand, _state.IsOver, _state.GetWinner());
             _coordinator?.EndRound();
+            RefreshProgress();
         }
 
         private void OnNextClicked()
@@ -201,6 +231,7 @@ namespace Poker_Card
             {
                 _state.Reset();
                 _coordinator?.StartNewBattle();
+                _round = 0;
             }
 
             StartRound();
@@ -208,6 +239,7 @@ namespace Poker_Card
 
         private void StartRound()
         {
+            _round++;
             _isSettled = false;
             _playerResult = null;
             _enemy.Deal();
@@ -215,6 +247,36 @@ namespace Poker_Card
             _handView.Deal();
             _resultView.ShowRoundStart();
             StartEffectRound();
+            RefreshProgress();
+        }
+
+        // 단계는 따로 저장하지 않고 지금 상태에서 매번 계산해서, 호출 순서가 꼬여도 화면이 어긋나지 않게 한다.
+        private void RefreshProgress()
+        {
+            if (_progressView == null)
+            {
+                return;
+            }
+
+            BattlePhase phase;
+            if (_isSettled)
+            {
+                phase = BattlePhase.Settled;
+            }
+            else if (_playerResult != null)
+            {
+                phase = BattlePhase.Ready;
+            }
+            else if (_coordinator != null && _coordinator.Player.Draft.IsOpen)
+            {
+                phase = BattlePhase.Draft;
+            }
+            else
+            {
+                phase = BattlePhase.Compose;
+            }
+
+            _progressView.Show(_round, phase);
         }
 
         private void StartEffectRound()

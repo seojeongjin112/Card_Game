@@ -1,5 +1,6 @@
 using Effect_Card;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Poker_Card
 {
@@ -7,6 +8,8 @@ namespace Poker_Card
     public class EffectHandView : MonoBehaviour
     {
         [SerializeField] private EffectCardSlotView[] _slots;
+        [SerializeField] private Text _titleText;
+        [SerializeField] private string _titleFormat = "효과 카드 (장착) {0} / {1}";
         [SerializeField] private string _passiveText = "패시브";
         [SerializeField] private string _passiveSealedText = "패시브 (봉인됨)";
         [SerializeField] private string _activeReadyText = "액티브 · 사용 전";
@@ -96,6 +99,11 @@ namespace Poker_Card
             var side = _coordinator.Player;
             var equipped = side.Inventory.Equipped;
             int slotCount = side.Inventory.SlotCount;
+
+            if (_titleText != null)
+            {
+                _titleText.text = string.Format(_titleFormat, equipped.Count, slotCount);
+            }
 
             for (int i = 0; i < _slots.Length; i++)
             {

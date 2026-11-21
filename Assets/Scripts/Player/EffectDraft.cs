@@ -19,6 +19,9 @@ namespace Effect_Card
 
         public event Action<EffectCardData> Picked;
 
+        // 제안이 비워진 뒤에 알린다. 장착 변경 알림은 비우기 전에 와서, 화면이 "아직 열려 있다"고 잘못 읽는 것을 막는다.
+        public event Action Closed;
+
         public EffectDraft(EffectInventory inventory, EffectRuleSet ruleSet)
         {
             _inventory = inventory;
@@ -59,6 +62,7 @@ namespace Effect_Card
 
             _offer.Clear();
             Picked?.Invoke(card);
+            Closed?.Invoke();
             return true;
         }
 
@@ -66,6 +70,7 @@ namespace Effect_Card
         public void Skip()
         {
             _offer.Clear();
+            Closed?.Invoke();
         }
     }
 }

@@ -75,6 +75,9 @@ namespace Effect_Card
         // 정산 직후 한 번. 사용한 카드 목록은 다음 라운드에 비워지므로 이 시점의 값을 복사해 넘긴다.
         public event Action<SettleResult> Settled;
 
+        // 전투 로그용. 상태가 바뀐 그 순간의 사건을 한 줄 재료로 알린다.
+        public event Action<EffectLogEntry> Logged;
+
         public EffectBattleCoordinator(BattleState state, EffectCardDatabase database, EffectRuleSet ruleSet, bool enemyPrefersHighGrade)
         {
             _state = state;
@@ -99,6 +102,7 @@ namespace Effect_Card
             _roundSettled = false;
             Player = CreateSide(_state.Player);
             Enemy = CreateSide(_state.Enemy);
+            Log(EffectLogKind.BattleStarted, true);
             Changed?.Invoke();
         }
 
@@ -110,8 +114,8 @@ namespace Effect_Card
             StartRoundFor(Player);
             StartRoundFor(Enemy);
 
-            _defense.TryUndying(Player.State, Player.GetActivePassives());
-            _defense.TryUndying(Enemy.State, Enemy.GetActivePassives());
+            CheckUndying(Player);
+            CheckUndying(Enemy);
 
             _enemyDrafter.Draft(Enemy.Draft);
             bool draftOpen = Player.Draft.Open();
@@ -145,6 +149,7 @@ namespace Effect_Card
             var trap = _disrupt.ResolveActiveUse(effectiveCard, self.State, opponent.State, opponent.GetActivePassives());
             if (trap.Nullified)
             {
+                Log(EffectLogKind.ActiveNullified, isPlayer, effectiveCard);
                 Changed?.Invoke();
                 return ActiveUseResult.Nullified;
             }
@@ -159,6 +164,7 @@ namespace Effect_Card
             }
 
             _utility.TryRecycle(card, self.GetActivePassives(), self.Tracker);
+            Log(EffectLogKind.ActiveUsed, isPlayer, effectiveCard);
             Changed?.Invoke();
             return ActiveUseResult.Used;
         }
@@ -195,8 +201,21 @@ namespace Effect_Card
             _settlement.ApplyPassiveDots(Player.State, Enemy.State, Player.GetActivePassives());
             _settlement.ApplyPassiveDots(Enemy.State, Player.State, Enemy.GetActivePassives());
 
-            _defense.TryUndying(Player.State, Player.GetActivePassives());
-            _defense.TryUndying(Enemy.State, Enemy.GetActivePassives());
+            CheckUndying(Player);
+            CheckUndying(Enemy);
+
+            // 치명타 줄이 결과 줄보다 먼저 쌓여야 최신순으로 볼 때 결과가 위에 온다.
+            if (playerCrit)
+            {
+                Log(EffectLogKind.CriticalHit, true);
+            }
+
+            if (enemyCrit)
+            {
+                Log(EffectLogKind.CriticalHit, false);
+            }
+
+            Log(EffectLogKind.Settled, true, null, winner, playerScore, enemyScore, totalDamage);
 
             _roundSettled = true;
             Changed?.Invoke();
@@ -228,8 +247,16 @@ namespace Effect_Card
             var side = new EffectSideContext(state, inventory, new EffectActiveTracker(inventory, _ruleSet),
                 new EffectDraft(inventory, _ruleSet));
 
+            // 드래프트가 닫힌 것도 화면이 알아야 한다. 드래프트도 조정자와 수명이 같아 구독을 해제하지 않는다.
+            side.Draft.Closed += RaiseChanged;
+
             // 한 번 쓴 액티브는 정체가 드러난다. 트래커도 조정자와 수명이 같아서 구독을 해제하지 않는다.
             side.Tracker.Used += card => side.RevealedActives.Add(card);
+
+            // 이쪽이 플레이어인지는 연결된 전투 상태로 가린다. Player/Enemy 프로퍼티는 아직 대입되기 전이다.
+            bool isPlayer = state == _state.Player;
+            side.Draft.Picked += card => Log(EffectLogKind.Drafted, isPlayer, card, BattleWinner.Draw, inventory.Equipped.Count);
+            side.Tracker.Expired += card => Log(EffectLogKind.ActiveExpired, isPlayer, card);
             return side;
         }
 
@@ -272,8 +299,27 @@ namespace Effect_Card
                 _utility.ApplyHaste(passives, side.Tracker);
             }
 
-            side.State.TickDots();
+            int dotDamage = side.State.TickDots();
+            if (dotDamage > 0)
+            {
+                Log(EffectLogKind.DotDamage, side == Player, null, BattleWinner.Draw, dotDamage);
+            }
+
             side.ExtraRerolls = _drawModifiers.GetExtraRerolls(passives);
+        }
+
+        private void CheckUndying(EffectSideContext side)
+        {
+            if (_defense.TryUndying(side.State, side.GetActivePassives()))
+            {
+                Log(EffectLogKind.UndyingTriggered, side == Player);
+            }
+        }
+
+        private void Log(EffectLogKind kind, bool isPlayer, EffectCardData card = null,
+            BattleWinner winner = BattleWinner.Draw, int value1 = 0, int value2 = 0, int value3 = 0)
+        {
+            Logged?.Invoke(new EffectLogEntry(kind, Round, isPlayer, card, winner, value1, value2, value3));
         }
 
         private EffectScoreCalculator.Result Calculate(EffectSideContext side, EffectSideContext opponent, PokerHandResult hand)
