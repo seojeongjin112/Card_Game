@@ -24,6 +24,19 @@ namespace Poker_Card
         public event Action<IReadOnlyList<PokerCardData>> HandSubmitted;
         public event Action SubmitCancelled;
 
+        // 선택·리롤·제출 등 화면에 보이는 상태가 바뀔 때마다 알린다. 도구 줄처럼 현재 상태를 따라 보여 주는 쪽이 쓴다.
+        public event Action Changed;
+
+        public int HandCount => _slots.Length;
+        public int MaxSelectCount => _maxSelectCount;
+        // 다른 화면의 OnEnable이 이 클래스의 Awake보다 먼저 불릴 수 있어서, 준비 전에는 0장으로 돌려준다.
+        public int SelectedCount => _selection != null ? _selection.Count : 0;
+
+        public IReadOnlyList<PokerCardData> GetSelectedCards()
+        {
+            return _selection != null ? CollectSelectedCards() : new List<PokerCardData>();
+        }
+
         private void Awake()
         {
             _deck = new PokerDeck(_database.Cards);
@@ -213,6 +226,8 @@ namespace Poker_Card
                 _rerollCounter.MaxCount,
                 _isRerollMode,
                 !_isSubmitted && _rerollCounter.Remaining > 0);
+
+            Changed?.Invoke();
         }
     }
 }
