@@ -90,6 +90,16 @@ namespace Poker_Card
         private bool _charging;
         private bool _skipRequested;
         private int _revealedCount;
+        [Header("공개 뒤집기와 선택 후광 (프로토타입 backOut / frontIn / pickGlow)")]
+        [SerializeField] private float _flipBackSeconds = 0.28f;
+        [SerializeField] private float _flipFaceDelay = 0.14f;
+        [SerializeField] private float _flipFaceSeconds = 0.4f;
+        [SerializeField] private Vector4 _flipFaceEase = new Vector4(0.2f, 1.6f, 0.4f, 1f);
+        [SerializeField] private float _glowPulsePeriod = 1.2f;
+        [SerializeField] private Color _glowPulseColor = new Color(1f, 1f, 1f, 1f);
+
+        private float[] _flipClock;
+        private float _glowClock;
         private float _revealTimer;
         private float _chargeClock;
 
@@ -190,6 +200,9 @@ namespace Poker_Card
         // 공개 연출을 시간에 따라 진행한다. 연출 중이 아닐 때는 아무것도 하지 않는다.
         public void Tick(float dt)
         {
+            AdvanceFlips(dt);
+            PulseSelectedGlow(dt);
+
             if (!_revealing || _coordinator == null)
             {
                 return;
@@ -231,12 +244,90 @@ namespace Poker_Card
             _revealedCount++;
             _revealTimer = _skipRequested ? _skipPace : GetPace(card.Grade);
             Refresh();
+            StartFlip(index);
             CardRevealed?.Invoke((RectTransform)_offerSlots[index].transform, card);
 
             if (_revealedCount >= offer.Count)
             {
                 EndReveal();
             }
+        }
+
+        // 프로토타입의 backOut / frontIn: 뒷면이 먼저 좁아져 사라지고, 잠시 뒤 앞면이 튕기며 펴진다.
+        private void StartFlip(int index)
+        {
+            EnsureFlipClocks();
+            _flipClock[index] = 0f;
+            ApplyFlip(index);
+        }
+
+        private void EnsureFlipClocks()
+        {
+            if (_flipClock == null || _flipClock.Length != _offerSlots.Length)
+            {
+                _flipClock = new float[_offerSlots.Length];
+                for (int i = 0; i < _flipClock.Length; i++)
+                {
+                    _flipClock[i] = -1f;
+                }
+            }
+        }
+
+        private void AdvanceFlips(float dt)
+        {
+            if (_flipClock == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < _flipClock.Length; i++)
+            {
+                if (_flipClock[i] < 0f)
+                {
+                    continue;
+                }
+
+                _flipClock[i] += dt;
+                ApplyFlip(i);
+            }
+        }
+
+        private void ApplyFlip(int index)
+        {
+            var visual = _offerVisuals[index];
+            float clock = _flipClock[index];
+            float backK = Mathf.Clamp01(clock / _flipBackSeconds);
+            float faceK = Mathf.Clamp01((clock - _flipFaceDelay) / _flipFaceSeconds);
+            bool done = clock >= _flipFaceDelay + _flipFaceSeconds && backK >= 1f;
+
+            if (done)
+            {
+                _flipClock[index] = -1f;
+                visual.Back.SetActive(false);
+                visual.Face.transform.localScale = Vector3.one;
+                return;
+            }
+
+            visual.Back.SetActive(backK < 1f);
+            visual.Back.transform.localScale = new Vector3(1f - backK * backK, 1f, 1f);
+            visual.Face.gameObject.SetActive(true);
+            float faceScale = UiEase.CubicBezier(_flipFaceEase.x, _flipFaceEase.y, _flipFaceEase.z, _flipFaceEase.w, faceK);
+            visual.Face.transform.localScale = new Vector3(faceScale, 1f, 1f);
+        }
+
+        // 프로토타입의 pickGlow: 고른 카드의 후광이 1.2초마다 금색에서 흰빛으로 숨 쉰다.
+        private void PulseSelectedGlow(float dt)
+        {
+            if (_selectedOffer < 0 || _selectedOffer >= _offerVisuals.Length || _offerVisuals[_selectedOffer].Glow.color.a <= 0f)
+            {
+                return;
+            }
+
+            _glowClock += dt;
+            float wave = (1f - Mathf.Cos(_glowClock / _glowPulsePeriod * Mathf.PI * 2f)) * 0.5f;
+            Color pulse = Color.Lerp(_glowColor, _glowPulseColor, wave);
+            pulse.a = _glowColor.a;
+            _offerVisuals[_selectedOffer].Glow.color = pulse;
         }
 
         private void StartReveal()
@@ -464,6 +555,8 @@ namespace Poker_Card
                     _offerSlots[i].SetInteractable(true);
                     _offerSlots[i].SetSelected(false);
                     visual.Back.SetActive(true);
+                    visual.Back.transform.localScale = Vector3.one;
+                    visual.Face.transform.localScale = Vector3.one;
                     visual.Face.gameObject.SetActive(false);
                     visual.Glow.color = Color.clear;
                     visual.TopTag.text = string.Empty;
@@ -481,7 +574,12 @@ namespace Poker_Card
 
                 var gradeColor = EffectCardFace.GetGradeColor(card.Grade);
                 string footer = card.IsActive ? string.Format(_cardActiveFooterFormat, _coordinator.ActiveUsableRounds) : _cardPassiveFooterText;
-                visual.Back.SetActive(false);
+                // 뒤집는 중에는 뒷면을 ApplyFlip이 정리하므로 여기서 건드리지 않는다.
+                if (_flipClock == null || _flipClock[i] < 0f)
+                {
+                    visual.Back.SetActive(false);
+                }
+
                 visual.Face.gameObject.SetActive(true);
                 visual.Face.Show(card, _activeLabel, _passiveLabel, footer, gradeColor, _gradeLetters[(int)card.Grade]);
 

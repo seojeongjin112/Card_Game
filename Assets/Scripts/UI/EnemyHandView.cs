@@ -8,7 +8,6 @@ namespace Poker_Card
     {
         [SerializeField] private Image[] _faces;
         [SerializeField] private Sprite _backSprite;
-        [SerializeField] private Color _dimmedColor = new Color(0.5f, 0.5f, 0.5f, 1f);
 
         [Header("뒷면이 내려앉는 연출 (프로토타입 dealOp)")]
         [SerializeField] private Vector2 _dropOffset = new Vector2(0f, 80f);
@@ -21,6 +20,9 @@ namespace Poker_Card
         private CanvasGroup[] _groups;
         private float _dropTime;
         private bool _dropping;
+
+        // 점수판이 상대 카드를 같은 뒷면 그림으로 시작하도록 알려 준다.
+        public Sprite BackSprite => _backSprite;
 
         private void Awake()
         {
@@ -49,14 +51,9 @@ namespace Poker_Card
             ApplyDrop();
         }
 
-        // 최고 5장은 밝게, 고르지 않은 카드는 어둡게 해서 상대가 낸 패가 한눈에 보이게 한다.
+        // 프로토타입은 상대 패를 위쪽 줄에서 공개하지 않는다("상대 전투 패 · 비공개"). 정산 때의 공개는 가운데 점수판이 맡는다.
         public void Reveal(IReadOnlyList<PokerCardData> hand, IReadOnlyList<PokerCardData> best)
         {
-            for (int i = 0; i < _faces.Length && i < hand.Count; i++)
-            {
-                _faces[i].sprite = hand[i].Sprite;
-                _faces[i].color = Contains(best, hand[i]) ? Color.white : _dimmedColor;
-            }
         }
 
         private void Update()
@@ -88,6 +85,7 @@ namespace Poker_Card
                 float k = Mathf.Clamp01((_dropTime - i * _dropStagger) / _dropDuration);
                 float progress = UiEase.CubicBezier(_dropEase.x, _dropEase.y, _dropEase.z, _dropEase.w, k);
                 float remain = 1f - progress;
+
                 // 레이아웃이 자리를 다시 잡아도 어긋나지 않도록, 지난번에 더한 오프셋만 빼고 새 오프셋을 더한다.
                 Vector2 offset = _dropOffset * remain;
                 _faces[i].rectTransform.anchoredPosition += offset - _appliedOffsets[i];
@@ -95,19 +93,6 @@ namespace Poker_Card
                 _faces[i].rectTransform.localRotation = Quaternion.Euler(0f, 0f, _dropRotation * remain);
                 _groups[i].alpha = _dropTime - i * _dropStagger <= 0f ? 0f : Mathf.Clamp01(progress);
             }
-        }
-
-        private static bool Contains(IReadOnlyList<PokerCardData> cards, PokerCardData card)
-        {
-            for (int i = 0; i < cards.Count; i++)
-            {
-                if (ReferenceEquals(cards[i], card))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }

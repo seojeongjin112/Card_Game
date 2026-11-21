@@ -60,6 +60,12 @@ namespace Poker_Card
             _nextLabel.text = isOver ? _restartLabel : _nextRoundLabel;
         }
 
+        // 결과 화면의 버튼처럼 다른 곳에서 "다음"과 같은 동작을 시켜야 할 때 쓴다.
+        public void TriggerNext()
+        {
+            HandleNextClicked();
+        }
+
         private string BuildRoundMessage(BattleOutcome outcome, PokerHandResult enemyHand)
         {
             switch (outcome.Winner)

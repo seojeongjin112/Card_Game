@@ -276,6 +276,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!1 &8471542
 GameObject:
   m_ObjectHideFlags: 0
@@ -410,6 +423,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!114 &27008853
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -727,6 +753,26 @@ MonoBehaviour:
   _face: {fileID: 1993939235}
   _selectedOffsetY: 30
   _dimmedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  _dealOffset: {x: 400, y: -240}
+  _dealStartRotation: -30
+  _dealStartScale: 0.6
+  _dealDuration: 0.5
+  _dealFadeSpeed: 1
+  _dealEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.2
+  _swayPhasePerIndex: 0.28
+  _hoverLift: 16
+  _hoverRotation: 2
+  _hoverSeconds: 0.15
+  _rerollColor: {r: 1, g: 0.949, b: 0.69, a: 1}
+  _rerollOffsetY: 8
+  _rerollRotation: 3
+  _flipOutSeconds: 0.26
+  _flipInSeconds: 0.35
+  _hopHeight: 21
+  _hopSeconds: 0.38
+  _hopEase: {x: 0.2, y: 1.6, z: 0.4, w: 1}
 --- !u!114 &32438237
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1104,6 +1150,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!114 &137193627
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1508,6 +1567,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!114 &196439467
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2139,6 +2211,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!114 &247410916
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2404,6 +2489,7 @@ GameObject:
   - component: {fileID: 263996770}
   - component: {fileID: 263996769}
   - component: {fileID: 263996767}
+  - component: {fileID: 263996772}
   m_Layer: 0
   m_Name: RerollButton
   m_TagString: Untagged
@@ -2529,6 +2615,27 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 263996766}
   m_CullTransparentMesh: 1
+--- !u!114 &263996772
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 263996766}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26fcad649f7100d478fc71ef3285a910, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Poker_Card.UiButtonFx
+  _idle: 0
+  _shine: 1
+  _idleAmplitude: 4
+  _idlePeriod: 2.2
+  _shineSeconds: 0.55
+  _shineWidthFactor: 0.6
+  _shineTiltDegrees: 20
+  _shineTravelFactor: 1.3
+  _shineAlpha: 0.55
 --- !u!1 &296811859
 GameObject:
   m_ObjectHideFlags: 0
@@ -2976,6 +3083,26 @@ MonoBehaviour:
   _face: {fileID: 333872618}
   _selectedOffsetY: 30
   _dimmedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  _dealOffset: {x: 400, y: -240}
+  _dealStartRotation: -30
+  _dealStartScale: 0.6
+  _dealDuration: 0.5
+  _dealFadeSpeed: 1
+  _dealEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.2
+  _swayPhasePerIndex: 0.28
+  _hoverLift: 16
+  _hoverRotation: 2
+  _hoverSeconds: 0.15
+  _rerollColor: {r: 1, g: 0.949, b: 0.69, a: 1}
+  _rerollOffsetY: 8
+  _rerollRotation: 3
+  _flipOutSeconds: 0.26
+  _flipInSeconds: 0.35
+  _hopHeight: 21
+  _hopSeconds: 0.38
+  _hopEase: {x: 0.2, y: 1.6, z: 0.4, w: 1}
 --- !u!114 &366261900
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3149,6 +3276,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!114 &379904778
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3219,6 +3359,104 @@ MonoBehaviour:
   _table: {fileID: 11400000, guid: a52fba2c5cdbb8248ad011065945f0f4, type: 2}
   _nameText: {fileID: 1370878261}
   _scoreText: {fileID: 1765346112}
+  _handView: {fileID: 1014020768}
+  _currentBarColor: {r: 1, g: 0.84, b: 0.35, a: 1}
+  _currentTextColor: {r: 0.1, g: 0.12, b: 0.12, a: 1}
+  _currentScale: 1.04
+  _transitionSeconds: 0.2
+  _barPaddingX: 6
+  _tipTitleFormat: "{0} \xB7 {1}\uC810"
+  _guides:
+  - _rank: 9
+    _how: "\uAC19\uC740 \uBB38\uC591\uC758 10\xB7J\xB7Q\xB7K\xB7A"
+    _cards:
+    - "A\u2666"
+    - "K\u2666"
+    - "Q\u2666"
+    - "J\u2666"
+    - "10\u2666"
+    _hitCount: 5
+  - _rank: 8
+    _how: "\uAC19\uC740 \uBB38\uC591 + \uC22B\uC790 5\uAC1C \uC5F0\uC18D"
+    _cards:
+    - "9\u2660"
+    - "8\u2660"
+    - "7\u2660"
+    - "6\u2660"
+    - "5\u2660"
+    _hitCount: 5
+  - _rank: 7
+    _how: "\uAC19\uC740 \uC22B\uC790 4\uC7A5"
+    _cards:
+    - "7\u2660"
+    - "7\u2665"
+    - "7\u2663"
+    - "7\u2666"
+    - "Q\u2660"
+    _hitCount: 4
+  - _rank: 6
+    _how: "\uD2B8\uB9AC\uD50C + \uC6D0 \uD398\uC5B4"
+    _cards:
+    - "10\u2660"
+    - "10\u2665"
+    - "10\u2666"
+    - "3\u2663"
+    - "3\u2660"
+    _hitCount: 5
+  - _rank: 5
+    _how: "\uAC19\uC740 \uBB38\uC591 5\uC7A5 (\uC22B\uC790 \uC0C1\uAD00\uC5C6\uC74C)"
+    _cards:
+    - "K\u2665"
+    - "10\u2665"
+    - "7\u2665"
+    - "4\u2665"
+    - "2\u2665"
+    _hitCount: 5
+  - _rank: 4
+    _how: "\uC22B\uC790 5\uAC1C \uC5F0\uC18D (\uBB38\uC591 \uC0C1\uAD00\uC5C6\uC74C)"
+    _cards:
+    - "9\u2663"
+    - "8\u2666"
+    - "7\u2660"
+    - "6\u2665"
+    - "5\u2663"
+    _hitCount: 5
+  - _rank: 3
+    _how: "\uAC19\uC740 \uC22B\uC790 3\uC7A5"
+    _cards:
+    - "8\u2660"
+    - "8\u2665"
+    - "8\u2666"
+    - "K\u2663"
+    - "4\u2660"
+    _hitCount: 3
+  - _rank: 2
+    _how: "\uAC19\uC740 \uC22B\uC790 2\uC7A5\uC774 \uB450 \uC30D"
+    _cards:
+    - "J\u2660"
+    - "J\u2666"
+    - "6\u2665"
+    - "6\u2663"
+    - "A\u2660"
+    _hitCount: 4
+  - _rank: 1
+    _how: "\uAC19\uC740 \uC22B\uC790 2\uC7A5"
+    _cards:
+    - "Q\u2665"
+    - "Q\u2663"
+    - "9\u2660"
+    - "5\u2666"
+    - "3\u2665"
+    _hitCount: 2
+  - _rank: 0
+    _how: "\uC544\uBB34 \uC871\uBCF4\uB3C4 \uC5C6\uC744 \uB54C"
+    _cards:
+    - "K\u2660"
+    - "9\u2665"
+    - "7\u2663"
+    - "4\u2666"
+    - "2\u2660"
+    _hitCount: 1
 --- !u!114 &415251937
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3414,6 +3652,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!1 &439744570
 GameObject:
   m_ObjectHideFlags: 0
@@ -3926,6 +4177,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!114 &478276721
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3953,6 +4217,7 @@ GameObject:
   - component: {fileID: 478286090}
   - component: {fileID: 478286089}
   - component: {fileID: 478286088}
+  - component: {fileID: 478286091}
   m_Layer: 0
   m_Name: SettleButton
   m_TagString: Untagged
@@ -4062,6 +4327,27 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 478286086}
   m_CullTransparentMesh: 1
+--- !u!114 &478286091
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 478286086}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26fcad649f7100d478fc71ef3285a910, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Poker_Card.UiButtonFx
+  _idle: 1
+  _shine: 1
+  _idleAmplitude: 4
+  _idlePeriod: 2.2
+  _shineSeconds: 0.55
+  _shineWidthFactor: 0.6
+  _shineTiltDegrees: 20
+  _shineTravelFactor: 1.3
+  _shineAlpha: 0.55
 --- !u!1 &480556357
 GameObject:
   m_ObjectHideFlags: 0
@@ -4374,6 +4660,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!114 &614695843
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4596,9 +4895,6 @@ MonoBehaviour:
   - {r: 1, g: 1, b: 1, a: 1}
   - {r: 1, g: 0.88, b: 0.54, a: 1}
   - {r: 1, g: 0.35, b: 0.24, a: 1}
-  _healBurstColors:
-  - {r: 0.44, g: 1, b: 0.66, a: 1}
-  - {r: 1, g: 1, b: 1, a: 1}
   _damageFormat: -{0}
   _healFormat: +{0} HP
   _shieldAddedFormat: "\uC2E4\uB4DC +{0}"
@@ -4625,10 +4921,6 @@ MonoBehaviour:
   _damageFontSize: 52
   _heavyDamageFontSize: 76
   _supportFontSize: 40
-  _healBurstCount: 12
-  _healBurstSpeed: 110
-  _shieldRingSize: 300
-  _shieldRingDuration: 0.5
   _bannerGap: 1.15
   _collisionDelay: 0.25
   _streamDuration: 0.4
@@ -4732,6 +5024,54 @@ MonoBehaviour:
   _legendGetSecondConfettiDelay: 0.7
   _getCard: {fileID: 1951010658}
   _getCardActiveRounds: 3
+  _dangerHpRatio: 0.3
+  _dangerColor: {r: 1, g: 0.12, b: 0.12, a: 1}
+  _dangerStartAlpha: 0.6
+  _dangerMidAlpha: 0.25
+  _dangerPeriod: 1.1
+  _dangerFalloff: {x: 0.1, y: 0.175}
+  _clutchEnterRatio: 0.35
+  _clutchExitRatio: 0.45
+  _clutchColor: {r: 0.745, g: 0.157, b: 1, a: 1}
+  _clutchStartAlpha: 0.4
+  _clutchMidAlpha: 0.55
+  _clutchPeriod: 0.9
+  _clutchFalloff: {x: 0.12, y: 0.21}
+  _vignetteFadeSeconds: 0.4
+  _equipBurstDelay: 0.45
+  _equipColor: {r: 1, g: 0.88, b: 0.54, a: 1}
+  _equipBurstColors:
+  - {r: 1, g: 0.88, b: 0.54, a: 1}
+  - {r: 1, g: 1, b: 1, a: 1}
+  _equipRingSize: 240
+  _equipRingDuration: 0.5
+  _equipBurstCount: 20
+  _equipBurstSpeed: 120
+  _hitStarBase: 240
+  _hitStarPerRatio: 400
+  _hitInnerRingBase: 200
+  _hitInnerRingPerRatio: 300
+  _hitInnerRingDuration: 0.38
+  _collisionStarSize: 260
+  _critStarSize: 220
+  _legendRevealStarSize: 320
+  _healSparkleColor: {r: 0.44, g: 1, b: 0.66, a: 1}
+  _healSparkleCount: 22
+  _resultView: {fileID: 1029954852}
+  _endWinFormat: "\uC2B9\uB9AC \xB7 {0}\uB77C\uC6B4\uB4DC"
+  _endLoseFormat: "\uD328\uBC30 \xB7 {0}\uB77C\uC6B4\uB4DC"
+  _endHpFormat: "\uB098 HP {0} \xB7 \uC0C1\uB300 HP {1}"
+  _endRestartLabel: "\uC0C8 \uAC8C\uC784"
+  _boardHeight: 236
+  _scoreCountSeconds: 0.8
+  _enemyHandView: {fileID: 1415002597}
+  _afterRevealPause: 0.2
+  _flipBurstColors:
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 1, g: 0.88, b: 0.54, a: 1}
+  _flipBurstCount: 5
+  _flipBurstSpeed: 40
+  _pokerHand: {fileID: 1014020768}
   _settleSummary: {fileID: 40797115}
   _passiveStep: 0.38
   _passiveTail: 0.5
@@ -4766,22 +5106,35 @@ MonoBehaviour:
   _endDrawSub: "\uBB34\uC2B9\uBD80"
   _victoryColor: {r: 1, g: 0.82, b: 0.25, a: 1}
   _defeatColor: {r: 1, g: 0.2, b: 0.2, a: 1}
-  _victoryFlashOpacity: 0.7
-  _victoryFlashDuration: 0.5
-  _victoryRingSize: 1100
-  _victoryRingDuration: 0.9
-  _victoryBurstCount: 90
-  _victoryBurstSpeed: 420
-  _victoryConfettiCount: 220
-  _victorySecondConfettiCount: 120
-  _victorySecondConfettiDelay: 0.8
-  _defeatFlashOpacity: 0.75
-  _defeatFlashDuration: 0.7
-  _defeatShake: 1.6
-  _crackCount: 9
-  _crackLength: 520
-  _crackThickness: 5
-  _crackLife: 2.4
+  _winFlashColor: {r: 1, g: 0.88, b: 0.54, a: 1}
+  _winFlashOpacity: 0.6
+  _winFlashDuration: 0.5
+  _winBurstDelay: 0.45
+  _winRingSize: 900
+  _winRingDuration: 0.9
+  _winBurstCount: 80
+  _winBurstSpeed: 420
+  _winBurstColors:
+  - {r: 1, g: 0.88, b: 0.54, a: 1}
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 0.16, g: 0.42, b: 0.74, a: 1}
+  - {r: 1, g: 0.35, b: 0.24, a: 1}
+  _winConfettiCount: 220
+  _winSecondConfettiCount: 120
+  _winSecondConfettiDelay: 1.5
+  _loseFlashColor: {r: 1, g: 0.16, b: 0.16, a: 1}
+  _loseFlashOpacity: 0.5
+  _loseFlashDuration: 0.6
+  _loseShake: 1.6
+  _loseCrackDelay: 0.2
+  _loseCrackLines: 9
+  _loseCrackSegments: 6
+  _loseCrackDrawSeconds: 0.6
+  _loseCrackLife: 6.8
+  _loseWashColor: {r: 0.45, g: 0.45, b: 0.45, a: 1}
+  _loseWashOpacity: 0.5
+  _loseWashDelay: 0.7
+  _loseWashDuration: 6
   _draftView: {fileID: 1499574368}
   _legendRevealFlashColor: {r: 1, g: 0.96, b: 0.78, a: 1}
   _epicRevealFlashColor: {r: 0.91, g: 0.82, b: 1, a: 1}
@@ -4884,6 +5237,35 @@ MonoBehaviour:
   _confettiStartMargin: 40
   _streamSizeRange: {x: 12, y: 24}
   _streamSpread: 30
+  _shapeTextureSize: 128
+  _starLife: 0.5
+  _starTurnDegrees: 45
+  _starStartScale: 0.2
+  _starEndScale: 1
+  _starFadeStart: 0.3
+  _bubbleSizeFactor: 1.15
+  _bubbleLife: 0.95
+  _bubbleStartScale: 0.6
+  _bubbleEndScale: 1.15
+  _bubbleFadeStart: 0.7
+  _sparkGlyphs:
+  - "\u2726"
+  - +
+  - "\u2727"
+  - "\xB7"
+  _sparkSizeRange: {x: 12, y: 26}
+  _sparkRiseSpeed: 55
+  _sparkLife: 1.3
+  _sparkStartScale: 0.4
+  _sparkEndScale: 1.2
+  _sparkFadeStart: 0.5
+  _crackReferenceHeight: 810
+  _crackOriginY: 380
+  _crackLengthRange: {x: 50, y: 120}
+  _crackThickness: 4
+  _crackColor: {r: 1, g: 1, b: 1, a: 1}
+  _crackShadowColor: {r: 0, g: 0, b: 0, a: 0.9}
+  _crackShadowOffset: {x: 3, y: -3}
 --- !u!114 &636217165
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5333,6 +5715,7 @@ GameObject:
   - component: {fileID: 731987537}
   - component: {fileID: 731987536}
   - component: {fileID: 731987538}
+  - component: {fileID: 731987539}
   m_Layer: 0
   m_Name: ConfirmButton
   m_TagString: Untagged
@@ -5442,6 +5825,27 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &731987539
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 731987534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26fcad649f7100d478fc71ef3285a910, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Poker_Card.UiButtonFx
+  _idle: 1
+  _shine: 1
+  _idleAmplitude: 4
+  _idlePeriod: 2.2
+  _shineSeconds: 0.55
+  _shineWidthFactor: 0.6
+  _shineTiltDegrees: 20
+  _shineTravelFactor: 1.3
+  _shineAlpha: 0.55
 --- !u!1 &732592284
 GameObject:
   m_ObjectHideFlags: 0
@@ -5529,6 +5933,7 @@ GameObject:
   - component: {fileID: 742947988}
   - component: {fileID: 742947987}
   - component: {fileID: 742947986}
+  - component: {fileID: 742947989}
   m_Layer: 0
   m_Name: NextButton
   m_TagString: Untagged
@@ -5638,6 +6043,27 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 742947984}
   m_CullTransparentMesh: 1
+--- !u!114 &742947989
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 742947984}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26fcad649f7100d478fc71ef3285a910, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Poker_Card.UiButtonFx
+  _idle: 1
+  _shine: 1
+  _idleAmplitude: 4
+  _idlePeriod: 2.2
+  _shineSeconds: 0.55
+  _shineWidthFactor: 0.6
+  _shineTiltDegrees: 20
+  _shineTravelFactor: 1.3
+  _shineAlpha: 0.55
 --- !u!1 &743003424
 GameObject:
   m_ObjectHideFlags: 0
@@ -5858,6 +6284,26 @@ MonoBehaviour:
   _face: {fileID: 1782785384}
   _selectedOffsetY: 30
   _dimmedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  _dealOffset: {x: 400, y: -240}
+  _dealStartRotation: -30
+  _dealStartScale: 0.6
+  _dealDuration: 0.5
+  _dealFadeSpeed: 1
+  _dealEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.2
+  _swayPhasePerIndex: 0.28
+  _hoverLift: 16
+  _hoverRotation: 2
+  _hoverSeconds: 0.15
+  _rerollColor: {r: 1, g: 0.949, b: 0.69, a: 1}
+  _rerollOffsetY: 8
+  _rerollRotation: 3
+  _flipOutSeconds: 0.26
+  _flipInSeconds: 0.35
+  _hopHeight: 21
+  _hopSeconds: 0.38
+  _hopEase: {x: 0.2, y: 1.6, z: 0.4, w: 1}
 --- !u!114 &743003608
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6109,6 +6555,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!1 &780587399
 GameObject:
   m_ObjectHideFlags: 0
@@ -6387,6 +6846,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!1 &805983994
 GameObject:
   m_ObjectHideFlags: 0
@@ -6544,6 +7016,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!1 &826147306
 GameObject:
   m_ObjectHideFlags: 0
@@ -6652,6 +7137,26 @@ MonoBehaviour:
   _face: {fileID: 1458582321}
   _selectedOffsetY: 30
   _dimmedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  _dealOffset: {x: 400, y: -240}
+  _dealStartRotation: -30
+  _dealStartScale: 0.6
+  _dealDuration: 0.5
+  _dealFadeSpeed: 1
+  _dealEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.2
+  _swayPhasePerIndex: 0.28
+  _hoverLift: 16
+  _hoverRotation: 2
+  _hoverSeconds: 0.15
+  _rerollColor: {r: 1, g: 0.949, b: 0.69, a: 1}
+  _rerollOffsetY: 8
+  _rerollRotation: 3
+  _flipOutSeconds: 0.26
+  _flipInSeconds: 0.35
+  _hopHeight: 21
+  _hopSeconds: 0.38
+  _hopEase: {x: 0.2, y: 1.6, z: 0.4, w: 1}
 --- !u!114 &826147312
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6979,6 +7484,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!1 &920501452
 GameObject:
   m_ObjectHideFlags: 0
@@ -7447,6 +7965,8 @@ MonoBehaviour:
   _hiddenActiveText: "\uC561\uD2F0\uBE0C (\uBE44\uACF5\uAC1C)"
   _revealedActiveFormat: "\uC561\uD2F0\uBE0C \xB7 {0}\uB77C\uC6B4\uB4DC \uB0A8\uC74C"
   _emptyText: "\uBE48 \uC2AC\uB86F"
+  _hoverLift: 13
+  _hoverScale: 1.15
 --- !u!114 &988326344
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7735,6 +8255,8 @@ MonoBehaviour:
   _rerollButton: {fileID: 263996767}
   _maxSelectCount: 5
   _rerollsPerRound: 1
+  _dealStagger: 0.07
+  _hopStagger: 0.06
 --- !u!4 &1014020769
 Transform:
   m_ObjectHideFlags: 0
@@ -8009,6 +8531,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!114 &1054984976
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8327,6 +8862,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!1 &1076787860
 GameObject:
   m_ObjectHideFlags: 0
@@ -8822,6 +9370,26 @@ MonoBehaviour:
   _face: {fileID: 1106221302}
   _selectedOffsetY: 30
   _dimmedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  _dealOffset: {x: 400, y: -240}
+  _dealStartRotation: -30
+  _dealStartScale: 0.6
+  _dealDuration: 0.5
+  _dealFadeSpeed: 1
+  _dealEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.2
+  _swayPhasePerIndex: 0.28
+  _hoverLift: 16
+  _hoverRotation: 2
+  _hoverSeconds: 0.15
+  _rerollColor: {r: 1, g: 0.949, b: 0.69, a: 1}
+  _rerollOffsetY: 8
+  _rerollRotation: 3
+  _flipOutSeconds: 0.26
+  _flipInSeconds: 0.35
+  _hopHeight: 21
+  _hopSeconds: 0.38
+  _hopEase: {x: 0.2, y: 1.6, z: 0.4, w: 1}
 --- !u!114 &1146886292
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9460,6 +10028,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!1 &1294590099
 GameObject:
   m_ObjectHideFlags: 0
@@ -9931,6 +10512,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!114 &1307175052
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10104,6 +10698,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!114 &1310840945
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10132,6 +10739,7 @@ GameObject:
   - component: {fileID: 1331725782}
   - component: {fileID: 1331725781}
   - component: {fileID: 1331725779}
+  - component: {fileID: 1331725784}
   m_Layer: 0
   m_Name: SubmitButton
   m_TagString: Untagged
@@ -10257,6 +10865,27 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1331725778}
   m_CullTransparentMesh: 1
+--- !u!114 &1331725784
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1331725778}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26fcad649f7100d478fc71ef3285a910, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Poker_Card.UiButtonFx
+  _idle: 1
+  _shine: 1
+  _idleAmplitude: 4
+  _idlePeriod: 2.2
+  _shineSeconds: 0.55
+  _shineWidthFactor: 0.6
+  _shineTiltDegrees: 20
+  _shineTravelFactor: 1.3
+  _shineAlpha: 0.55
 --- !u!1 &1342031801
 GameObject:
   m_ObjectHideFlags: 0
@@ -10849,7 +11478,11 @@ MonoBehaviour:
   - {fileID: 1843716525}
   - {fileID: 1076787861}
   _backSprite: {fileID: 21300000, guid: 070b24b4157eb134992817d1d94c3bb2, type: 3}
-  _dimmedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  _dropOffset: {x: 0, y: 80}
+  _dropRotation: 20
+  _dropDuration: 0.45
+  _dropStagger: 0.07
+  _dropEase: {x: 0.2, y: 1, z: 0.4, w: 1}
 --- !u!224 &1415002598
 RectTransform:
   m_ObjectHideFlags: 0
@@ -11060,6 +11693,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!114 &1416272952
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11377,6 +12023,12 @@ MonoBehaviour:
   - R
   - E
   - L
+  _flipBackSeconds: 0.28
+  _flipFaceDelay: 0.14
+  _flipFaceSeconds: 0.4
+  _flipFaceEase: {x: 0.2, y: 1.6, z: 0.4, w: 1}
+  _glowPulsePeriod: 1.2
+  _glowPulseColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!224 &1499574369
 RectTransform:
   m_ObjectHideFlags: 0
@@ -11769,6 +12421,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!224 &1564895031
 RectTransform:
   m_ObjectHideFlags: 0
@@ -12010,6 +12675,8 @@ MonoBehaviour:
   _activeReadyText: "\uC561\uD2F0\uBE0C \xB7 \uC0AC\uC6A9 \uC804"
   _activeRemainingFormat: "\uC561\uD2F0\uBE0C \xB7 {0}\uB77C\uC6B4\uB4DC \uB0A8\uC74C"
   _activeUsedFormat: "\uC0AC\uC6A9\uD568 \xB7 {0}\uB77C\uC6B4\uB4DC \uB0A8\uC74C"
+  _hoverLift: 77
+  _hoverScale: 1.28
 --- !u!224 &1573776293
 RectTransform:
   m_ObjectHideFlags: 0
@@ -12758,6 +13425,7 @@ GameObject:
   - component: {fileID: 1733849625}
   - component: {fileID: 1733849627}
   - component: {fileID: 1733849626}
+  - component: {fileID: 1733849628}
   m_Layer: 0
   m_Name: EventBox
   m_TagString: Untagged
@@ -12822,6 +13490,121 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1733849624}
   m_CullTransparentMesh: 1
+--- !u!114 &1733849628
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1733849624}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67daf188a8085774ba33521f5b474f26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Poker_Card.BattleEventBoxView
+  _box: {fileID: 1733849625}
+  _stepTitle: {fileID: 475784515}
+  _heading: {fileID: 459576839}
+  _description: {fileID: 949680341}
+  _message: {fileID: 1029954850}
+  _settleSummaryText: {fileID: 1412227063}
+  _submitButton: {fileID: 1331725781}
+  _rerollButton: {fileID: 263996769}
+  _settleButton: {fileID: 478286088}
+  _nextButton: {fileID: 742947986}
+  _handView: {fileID: 1014020768}
+  _scoreTable: {fileID: 11400000, guid: a52fba2c5cdbb8248ad011065945f0f4, type: 2}
+  _progressView: {fileID: 953923760}
+  _stepNumbers:
+  - 01
+  - 02
+  - 03
+  - 04
+  _stepLabels:
+  - "\uB4DC\uB798\uD504\uD2B8"
+  - "\uC804\uD22C \uD328 \uAD6C\uC131"
+  - "\uC1FC\uB2E4\uC6B4 \uC900\uBE44"
+  - "\uD53C\uD574 \uC815\uC0B0"
+  _composePrompt: "\uACF5\uACA9\uD560 5\uC7A5\uC744 \uACE0\uB974\uC138\uC694"
+  _draftHeading: "\uC774\uBC88 \uB77C\uC6B4\uB4DC\uC5D0 \uB354\uD560 \uD6A8\uACFC
+    \uCE74\uB4DC\uB97C \uACE0\uB974\uC138\uC694."
+  _composeDescription: "\uD3EC\uCEE4 \uCE74\uB4DC 7\uC7A5 \uC911 5\uC7A5\uC744 \uACE8\uB77C
+    \uC871\uBCF4\uB97C \uB9CC\uB4DC\uC138\uC694. \uC561\uD2F0\uBE0C \uD6A8\uACFC
+    \uCE74\uB4DC\uB3C4 \uC9C0\uAE08 \uC0AC\uC6A9\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+  _rerollDescription: "\uB9AC\uB864 \uBAA8\uB4DC \xB7 \uBC14\uAFC0 \uCE74\uB4DC\uB97C
+    \uB20C\uB7EC \uAD50\uCCB4\uD558\uC138\uC694"
+  _draftDescription: "3\uC7A5 \uC911 1\uC7A5\uB9CC \uD68D\uB4DD\uD569\uB2C8\uB2E4.
+    \uD6A8\uACFC \uCE74\uB4DC\uAC00 \uAC00\uB4DD \uCC28\uBA74 \uBC84\uB9B4 \uCE74\uB4DC\uB97C
+    \uD568\uAED8 \uACE0\uB985\uB2C8\uB2E4."
+  _selectedPillFormat: "\uC120\uD0DD {0} / {1}"
+  _readyPill: "5 / 5 \uC81C\uCD9C \uAC00\uB2A5"
+  _readyNote: "\uB0B4 \uD328 \uACF5\uAC1C \uC804 \xB7 \uC0C1\uB300\uB3C4 \uC81C\uCD9C
+    \uB300\uAE30"
+  _baseScoreFormat: "\uAE30\uBCF8 {0}\uC810"
+  _rerollModeFormat: "\uB9AC\uB864 \uBAA8\uB4DC ({0})"
+  _rerollCancelLabel: "\uCDE8\uC18C"
+  _autoLabel: "\uCD5C\uC801 5\uC7A5 \uC790\uB3D9 \uC120\uD0DD"
+  _needFiveLabel: "5\uC7A5 \uC120\uD0DD \uD544\uC694"
+  _confirmHandLabel: "\uD328 \uD655\uC815 \u2192 03"
+  _backLabel: "\u2190 \uD328 \uB2E4\uC2DC \uACE0\uB974\uAE30"
+  _settleLabel: "\uC81C\uCD9C \uD655\uC815 \u2192 04"
+  _pickedFormat: "\uC81C\uCD9C \uC608\uC815: {0}"
+  _basisFormat: "\uC871\uBCF4 {0}"
+  _useCardsHint: "\uC544\uB798 \uC561\uD2F0\uBE0C \uD6A8\uACFC \uCE74\uB4DC\uB97C
+    \uB20C\uB7EC \uC0AC\uC6A9\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4"
+  _flushHintFormat: "{0} \uBB38\uC591\uC774 4\uC7A5 \u2014 {0} 1\uC7A5\uB9CC \uB354
+    \uC624\uBA74 <b>\uD50C\uB7EC\uC2DC({1}\uC810)</b>. \uB2E4\uB978 \uBB38\uC591
+    \uCE74\uB4DC\uB97C \uB9AC\uB864\uD574 \uBCF4\uC138\uC694."
+  _straightHintFormat: "\uC22B\uC790 {0} 1\uC7A5\uB9CC \uB354 \uC624\uBA74 <b>\uC2A4\uD2B8\uB808\uC774\uD2B8({1}\uC810)</b>.
+    \uC5F0\uC18D\uC5D0 \uC548 \uC4F0\uC774\uB294 \uCE74\uB4DC\uB97C \uB9AC\uB864\uD574
+    \uBCF4\uC138\uC694."
+  _tripsHint: "\uD2B8\uB9AC\uD50C \uC644\uC131! \uAC19\uC740 \uC22B\uC790 1\uC7A5\uC774
+    \uB354 \uC624\uBA74 <b>\uD3EC\uCE74\uB4DC</b>, \uB2E4\uB978 \uD398\uC5B4\uAC00
+    \uC0DD\uAE30\uBA74 <b>\uD480 \uD558\uC6B0\uC2A4</b>\uC785\uB2C8\uB2E4."
+  _twoPairHintFormat: "\uD22C \uD398\uC5B4 \u2014 \uB450 \uC30D \uC911 \uD558\uB098\uAC00
+    1\uC7A5 \uB354 \uB9DE\uC73C\uBA74 <b>\uD480 \uD558\uC6B0\uC2A4({0}\uC810)</b>\uC785\uB2C8\uB2E4."
+  _onePairHint: "\uC6D0 \uD398\uC5B4 \u2014 \uD398\uC5B4\uB294 \uB0A8\uAE30\uACE0
+    \uB098\uBA38\uC9C0\uB97C \uB9AC\uB864\uD558\uBA74 <b>\uD2B8\uB9AC\uD50C</b>\xB7<b>\uD22C
+    \uD398\uC5B4</b>\uB97C \uB178\uB9B4 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+  _highCardHintFormat: "\uC871\uBCF4 \uC5C6\uC74C \u2014 \uAC19\uC740 \uC22B\uC790
+    2\uC7A5\uC744 \uBAA8\uC73C\uBA74 <b>\uC6D0 \uD398\uC5B4({0}\uC810)</b>. \uB0AE\uC740
+    \uCE74\uB4DC\uB97C \uB9AC\uB864\uD574 \uBCF4\uC138\uC694."
+  _hintBullet: "\u25C6"
+  _padding: 40
+  _stepTop: 30
+  _stepHeight: 36
+  _headingTop: 76
+  _headingHeight: 62
+  _descriptionTop: 146
+  _hintTop: 184
+  _hintHeight: 38
+  _pickedTop: 140
+  _dividerTop: 232
+  _buttonTop: 246
+  _buttonHeight: 48
+  _buttonGap: 14
+  _buttonPaddingX: 40
+  _buttonMinWidth: 140
+  _pillGap: 16
+  _stepFontSize: 24
+  _pillFontSize: 24
+  _headingFontSize: 46
+  _smallFontSize: 26
+  _bodyFontSize: 22
+  _hintFontSize: 21
+  _buttonFontSize: 22
+  _bigScoreFontSize: 72
+  _textColor: {r: 0.957, g: 0.945, b: 0.91, a: 1}
+  _bodyColor: {r: 0.812, g: 0.902, b: 0.863, a: 1}
+  _mutedColor: {r: 0.62, g: 0.796, b: 0.722, a: 1}
+  _goldColor: {r: 1, g: 0.878, b: 0.541, a: 1}
+  _inkColor: {r: 0.067, g: 0.067, b: 0.067, a: 1}
+  _redCardColor: {r: 1, g: 0.45, b: 0.4, a: 1}
+  _hintBackColor: {r: 0.902, g: 0.639, b: 0.235, a: 0.12}
+  _lineColor: {r: 0.25, g: 0.4, b: 0.35, a: 1}
+  _grayButtonColor: {r: 0.247, g: 0.298, b: 0.278, a: 1}
+  _primaryButtonColor: {r: 1, g: 0.353, b: 0.235, a: 1}
+  _disabledButtonColor: {r: 0.32, g: 0.4, b: 0.37, a: 1}
 --- !u!1 &1735379245
 GameObject:
   m_ObjectHideFlags: 0
@@ -12930,6 +13713,26 @@ MonoBehaviour:
   _face: {fileID: 96629996}
   _selectedOffsetY: 30
   _dimmedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  _dealOffset: {x: 400, y: -240}
+  _dealStartRotation: -30
+  _dealStartScale: 0.6
+  _dealDuration: 0.5
+  _dealFadeSpeed: 1
+  _dealEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.2
+  _swayPhasePerIndex: 0.28
+  _hoverLift: 16
+  _hoverRotation: 2
+  _hoverSeconds: 0.15
+  _rerollColor: {r: 1, g: 0.949, b: 0.69, a: 1}
+  _rerollOffsetY: 8
+  _rerollRotation: 3
+  _flipOutSeconds: 0.26
+  _flipInSeconds: 0.35
+  _hopHeight: 21
+  _hopSeconds: 0.38
+  _hopEase: {x: 0.2, y: 1.6, z: 0.4, w: 1}
 --- !u!114 &1735379251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13260,6 +14063,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!1 &1761515325
 GameObject:
   m_ObjectHideFlags: 0
@@ -14551,6 +15367,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!1 &1951010656
 GameObject:
   m_ObjectHideFlags: 0
@@ -14708,6 +15537,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!114 &1964237871
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15015,6 +15857,7 @@ MonoBehaviour:
   _difficulty: 1
   _effectHandView: {fileID: 1573776292}
   _effectDraftView: {fileID: 1499574368}
+  _dealDelayAfterDraft: 0.6
   _enemyEffectView: {fileID: 988326343}
   _settleSummaryView: {fileID: 40797115}
   _effectPileView: {fileID: 674669001}
@@ -15249,6 +16092,26 @@ MonoBehaviour:
   _face: {fileID: 1728343487}
   _selectedOffsetY: 30
   _dimmedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  _dealOffset: {x: 400, y: -240}
+  _dealStartRotation: -30
+  _dealStartScale: 0.6
+  _dealDuration: 0.5
+  _dealFadeSpeed: 1
+  _dealEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.2
+  _swayPhasePerIndex: 0.28
+  _hoverLift: 16
+  _hoverRotation: 2
+  _hoverSeconds: 0.15
+  _rerollColor: {r: 1, g: 0.949, b: 0.69, a: 1}
+  _rerollOffsetY: 8
+  _rerollRotation: 3
+  _flipOutSeconds: 0.26
+  _flipInSeconds: 0.35
+  _hopHeight: 21
+  _hopSeconds: 0.38
+  _hopEase: {x: 0.2, y: 1.6, z: 0.4, w: 1}
 --- !u!114 &2040217958
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15623,6 +16486,19 @@ MonoBehaviour:
   _spotlightDimAlpha: 0.3
   _spotlightScale: 1.12
   _spotlightGrayAmount: 0.7
+  _arriveDuration: 0.52
+  _arriveStartScale: 1.1
+  _arriveStartAlpha: 0.4
+  _arriveEase: {x: 0.2, y: 1.1, z: 0.4, w: 1}
+  _glowDuration: 1
+  _glowHoldUntil: 0.6
+  _glowColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _glowDistance: {x: 5, y: 5}
+  _swayAmplitude: 6.7
+  _swayPeriod: 3.6
+  _swayPhasePerIndex: 0.3
+  _hoverSeconds: 0.15
+  _hoverSortingOrder: 1
 --- !u!114 &2061370202
 MonoBehaviour:
   m_ObjectHideFlags: 0

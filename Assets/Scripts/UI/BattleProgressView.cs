@@ -1,3 +1,4 @@
+using System;
 using Core;
 using UnityEngine;
 using UnityEngine.UI;
@@ -34,6 +35,9 @@ namespace Poker_Card
             string.Empty
         };
 
+        // 단계가 바뀌었음을 알린다. 가운데 상자처럼 단계마다 구성이 달라지는 쪽이 자기 내용을 다시 그리는 데 쓴다.
+        public event Action<int, BattlePhase> PhaseShown;
+
         public void Show(int round, BattlePhase phase)
         {
             _roundText.text = string.Format(_roundFormat, round);
@@ -58,6 +62,8 @@ namespace Poker_Card
             {
                 _descriptionText.text = _descriptions[active];
             }
+
+            PhaseShown?.Invoke(round, phase);
         }
     }
 }

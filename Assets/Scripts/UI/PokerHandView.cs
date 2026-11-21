@@ -13,6 +13,7 @@ namespace Poker_Card
         [SerializeField] private int _maxSelectCount = 5;
         [SerializeField] private int _rerollsPerRound = 1;
         [SerializeField] private float _dealStagger = 0.07f;
+        [SerializeField] private float _hopStagger = 0.06f;
 
         private PokerDeck _deck;
         private PokerHandSelection _selection;
@@ -32,6 +33,36 @@ namespace Poker_Card
         public int MaxSelectCount => _maxSelectCount;
         // 다른 화면의 OnEnable이 이 클래스의 Awake보다 먼저 불릴 수 있어서, 준비 전에는 0장으로 돌려준다.
         public int SelectedCount => _selection != null ? _selection.Count : 0;
+
+        public bool IsSubmitted => _isSubmitted;
+        public bool IsRerollMode => _isRerollMode;
+        public int RerollsRemaining => _rerollCounter != null ? _rerollCounter.Remaining : 0;
+        public IReadOnlyList<PokerCardData> Hand => _hand;
+
+        // 패 7장 중 가장 센 5장을 골라 선택 상태로 만든다. 제출·정산 중이거나 리롤 모드일 때는 아무것도 하지 않는다.
+        public bool SelectBest(PokerBestHandChooser chooser)
+        {
+            if (_isSubmitted || _isLocked || _isRerollMode || _hand.Count < _maxSelectCount)
+            {
+                return false;
+            }
+
+            var best = chooser.Choose(_hand);
+            _selection.Clear();
+            for (int i = 0; i < _hand.Count; i++)
+            {
+                for (int k = 0; k < best.Cards.Count; k++)
+                {
+                    if (ReferenceEquals(best.Cards[k], _hand[i]))
+                    {
+                        _selection.TryToggle(i);
+                        break;
+                    }
+                }
+            }
+
+            return true;
+        }
 
         public IReadOnlyList<PokerCardData> GetSelectedCards()
         {
@@ -111,6 +142,20 @@ namespace Poker_Card
             }
         }
 
+        // 낸 카드가 왼쪽부터 차례로 한 번씩 튄다. 낸 카드가 아닌 것은 가만히 둔다.
+        public void HopSelected()
+        {
+            int order = 0;
+            for (int i = 0; i < _slots.Length; i++)
+            {
+                if (_selection.IsSelected(i))
+                {
+                    _slots[i].PlayHop(order * _hopStagger);
+                    order++;
+                }
+            }
+        }
+
         // 패는 그대로 두고 나눠 주는 연출만 다시 보여 준다.
         public void ReplayDeal(float delay = 0f)
         {
@@ -165,7 +210,7 @@ namespace Poker_Card
             }
 
             _hand[index] = replacement;
-            _slots[index].SetSprite(replacement.Sprite);
+            _slots[index].PlayFlipTo(replacement.Sprite);
 
             // 선택 해제가 이벤트로 화면을 갱신한다. 선택돼 있지 않았다면 직접 갱신해야 한다.
             if (!_selection.Remove(index))
@@ -229,6 +274,7 @@ namespace Poker_Card
                 _slots[i].SetSelected(selected);
                 // 제출 중에는 제출에서 빠진 카드를 어둡게 해서 잠긴 상태가 눈에 보이게 한다.
                 _slots[i].SetDimmed(_isSubmitted && !selected);
+                _slots[i].SetRerollMode(_isRerollMode);
             }
 
             _submitButton.SetState(_selection.Count == _maxSelectCount, _isSubmitted, _isLocked);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Core;
 using Effect_Card;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Poker_Card
 {
@@ -260,6 +261,22 @@ namespace Poker_Card
         [SerializeField] private UiFxGetCard _getCard;
         [SerializeField] private int _getCardActiveRounds = 3;
 
+        [Header("HP 위기 비네트 (프로토타입 danger / clutchPulse)")]
+        [SerializeField] private float _dangerHpRatio = 0.3f;
+        [SerializeField] private Color _dangerColor = new Color(1f, 0.12f, 0.12f, 1f);
+        [SerializeField] private float _dangerStartAlpha = 0.6f;
+        [SerializeField] private float _dangerMidAlpha = 0.25f;
+        [SerializeField] private float _dangerPeriod = 1.1f;
+        [SerializeField] private Vector2 _dangerFalloff = new Vector2(0.1f, 0.175f);
+        [SerializeField] private float _clutchEnterRatio = 0.35f;
+        [SerializeField] private float _clutchExitRatio = 0.45f;
+        [SerializeField] private Color _clutchColor = new Color(0.745f, 0.157f, 1f, 1f);
+        [SerializeField] private float _clutchStartAlpha = 0.4f;
+        [SerializeField] private float _clutchMidAlpha = 0.55f;
+        [SerializeField] private float _clutchPeriod = 0.9f;
+        [SerializeField] private Vector2 _clutchFalloff = new Vector2(0.12f, 0.21f);
+        [SerializeField] private float _vignetteFadeSeconds = 0.4f;
+
         [Header("장착 연출 (프로토타입 equip)")]
         [SerializeField] private float _equipBurstDelay = 0.45f;
         [SerializeField] private Color _equipColor = new Color(1f, 0.88f, 0.54f, 1f);
@@ -280,6 +297,27 @@ namespace Poker_Card
         [SerializeField] private float _legendRevealStarSize = 320f;
         [SerializeField] private Color _healSparkleColor = new Color(0.44f, 1f, 0.66f, 1f);
         [SerializeField] private int _healSparkleCount = 22;
+
+        [Header("결과 화면 (프로토타입 endov)")]
+        [SerializeField] private BattleResultView _resultView;
+        [SerializeField] private string _endWinFormat = "승리 · {0}라운드";
+        [SerializeField] private string _endLoseFormat = "패배 · {0}라운드";
+        [SerializeField] private string _endHpFormat = "나 HP {0} · 상대 HP {1}";
+        [SerializeField] private string _endRestartLabel = "새 게임";
+
+        [Header("쇼다운 점수판 (프로토타입 sd)")]
+        [SerializeField] private float _boardHeight = 236f;
+        [SerializeField] private float _scoreCountSeconds = 0.8f;
+
+        [Header("상대 패 공개 (프로토타입 sd-c open)")]
+        [SerializeField] private EnemyHandView _enemyHandView;
+        [SerializeField] private float _afterRevealPause = 0.2f;
+        [SerializeField] private Color[] _flipBurstColors = { Color.white, new Color(1f, 0.88f, 0.54f, 1f) };
+        [SerializeField] private int _flipBurstCount = 5;
+        [SerializeField] private float _flipBurstSpeed = 40f;
+
+        [Header("낸 카드 튀기 (프로토타입 족보 배너 때)")]
+        [SerializeField] private PokerHandView _pokerHand;
 
         [Header("점수 카운트업 연결")]
         [SerializeField] private EffectSettleSummaryView _settleSummary;
@@ -405,6 +443,13 @@ namespace Poker_Card
         // 정산 중 일어나는 피해 연출을 이 시간만큼 미룬다. 점수 연출이 끝난 뒤에 맞는 모습이 나오게 하려는 것이다.
         private float _hitDelay;
         private bool _started;
+        private UiEndOverlay _endOverlay;
+        private UiShowdownBoard _showdown;
+        private UiFxHudHit _playerHudHit;
+        private UiFxHudHit _enemyHudHit;
+        private UiFxVignette _dangerVignette;
+        private UiFxVignette _clutchVignette;
+        private bool _clutchOn;
         private bool _passiveFlashed;
         private float _hitStopRemaining;
         private float _savedTimeScale = 1f;
@@ -416,6 +461,7 @@ namespace Poker_Card
             _playerWatcher = new SideWatcher(this, state.Player, true);
             _enemyWatcher = new SideWatcher(this, state.Enemy, false);
             _coordinator = _controller.Coordinator;
+            BuildHudReactions();
             _started = true;
             if (_settleSummary != null)
             {
@@ -447,6 +493,12 @@ namespace Poker_Card
         {
             Unsubscribe();
             EndHitStop();
+            if (_started)
+            {
+                _playerHudHit.Cancel();
+                _enemyHudHit.Cancel();
+            }
+
             if (_settleSummary != null)
             {
                 _settleSummary.SetDirected(false);
@@ -495,8 +547,82 @@ namespace Poker_Card
             _hitStopRemaining = 0f;
         }
 
+        // 씬에 오브젝트를 더하지 않고 기존 HUD에 흔들림을 걸고, 비네트 두 장은 효과 레이어 맨 아래에 코드로 만든다.
+        private void BuildHudReactions()
+        {
+            var settings = new UiFxHudHit.Settings();
+            _playerHudHit = new UiFxHudHit(_playerHud, _playerBar, settings);
+            _enemyHudHit = new UiFxHudHit(_enemyHud, _enemyBar, settings);
+
+            // 점수판은 이벤트 박스의 위쪽 칸을 덮는다. 같은 부모(Stage)의 맨 위에 두어 제목 글자 위에 그려지게 한다.
+            var stage = (RectTransform)_eventBox.parent;
+            var boxImage = _eventBox.GetComponent<Image>();
+            Color boardColor = boxImage != null ? boxImage.color : new Color(0.05f, 0.15f, 0.12f, 1f);
+            boardColor.a = 1f;
+            Vector2 boardSize = new Vector2(_eventBox.rect.width, _boardHeight);
+            Vector2 boardPosition = _eventBox.anchoredPosition + Vector2.up * (_eventBox.rect.height / 2f - _boardHeight / 2f);
+            var font = _playerBar.GetComponentInChildren<Text>(true).font;
+            _showdown = UiShowdownBoard.Create(stage, font, boardSize, boardPosition, boardColor);
+            _showdown.transform.SetAsLastSibling();
+            _showdown.CardOpened += OnBoardCardOpened;
+
+            var layer = (RectTransform)_fx.transform;
+            _dangerVignette = UiFxVignette.Create(layer, "DangerVignette", _dangerFalloff);
+            _clutchVignette = UiFxVignette.Create(layer, "ClutchVignette", _clutchFalloff);
+            _clutchVignette.transform.SetAsFirstSibling();
+            _dangerVignette.transform.SetAsFirstSibling();
+
+            // 결과 화면은 비네트 바로 위, 플래시와 컷인 아래에 둔다. 승리 폭죽과 번쩍임이 그 위에 그려진다.
+            _endOverlay = UiEndOverlay.Create(layer, font);
+            _endOverlay.transform.SetSiblingIndex(2);
+            if (_resultView != null)
+            {
+                _endOverlay.SetButtonAction(_resultView.TriggerNext, _endRestartLabel);
+            }
+        }
+
+        // 내 HP가 위험하면 붉게, 양쪽 모두 벼랑 끝이면 보라색으로 화면 가장자리가 숨 쉰다. 접전은 들어갈 때와 나올 때 기준을 달리한다.
+        private void RefreshMood()
+        {
+            var state = _controller.State;
+            float mine = state.Player.Hp / (float)state.Player.MaxHp;
+            float theirs = state.Enemy.Hp / (float)state.Enemy.MaxHp;
+            bool alive = state.Player.Hp > 0 && state.Enemy.Hp > 0;
+
+            bool danger = alive && mine <= _dangerHpRatio;
+            if (danger && !_dangerVignette.IsActive)
+            {
+                _dangerVignette.Show(_dangerColor, _dangerStartAlpha, _dangerMidAlpha, _dangerPeriod, _vignetteFadeSeconds);
+            }
+            else if (!danger && _dangerVignette.IsActive)
+            {
+                _dangerVignette.Hide();
+            }
+
+            float limit = _clutchOn ? _clutchExitRatio : _clutchEnterRatio;
+            _clutchOn = alive && mine <= limit && theirs <= limit;
+            if (_clutchOn && !_clutchVignette.IsActive)
+            {
+                _clutchVignette.Show(_clutchColor, _clutchStartAlpha, _clutchMidAlpha, _clutchPeriod, _vignetteFadeSeconds);
+            }
+            else if (!_clutchOn && _clutchVignette.IsActive)
+            {
+                _clutchVignette.Hide();
+            }
+        }
+
         public void Tick(float dt)
         {
+            if (_started)
+            {
+                _showdown.Tick(dt);
+                _endOverlay.Tick(dt);
+                _playerHudHit.Tick(dt);
+                _enemyHudHit.Tick(dt);
+                _dangerVignette.Tick(dt);
+                _clutchVignette.Tick(dt);
+            }
+
             _cutInBusyFor = Mathf.Max(0f, _cutInBusyFor - dt);
 
             if (_timeline.Count == 0)
@@ -582,6 +708,12 @@ namespace Poker_Card
             }
         }
 
+        // 점수판의 카드가 뒤집히기 시작하는 순간 작은 불꽃이 튄다.
+        private void OnBoardCardOpened(RectTransform card)
+        {
+            _spawner.Burst(_spawner.ToLocal(card), _flipBurstColors, _flipBurstCount, _flipBurstSpeed);
+        }
+
         private void Schedule(float delay, Action action)
         {
             if (delay <= 0f)
@@ -601,6 +733,12 @@ namespace Poker_Card
             _hitDelay = 0f;
             _cutInBusyFor = 0f;
             ClearSpotlight();
+            if (_showdown != null)
+            {
+                _showdown.Hide();
+            }
+
+            _endOverlay.Hide();
             PlayRoundBanner(round);
         }
 
@@ -612,6 +750,9 @@ namespace Poker_Card
 
         private void PlayBattleEnd(BattleWinner winner)
         {
+            _dangerVignette.Hide();
+            _clutchVignette.Hide();
+            _clutchOn = false;
             if (winner == BattleWinner.Player)
             {
                 _fx.Flash(_winFlashColor, _winFlashOpacity, _winFlashDuration);
@@ -622,7 +763,7 @@ namespace Poker_Card
                 });
                 _spawner.Confetti(_winConfettiCount);
                 Schedule(_winSecondConfettiDelay, () => _spawner.Confetti(_winSecondConfettiCount));
-                _fx.ShowBanner(_victoryText, _victorySub, _victoryColor, true);
+                ShowEndOverlay(true);
             }
             else if (winner == BattleWinner.Enemy)
             {
@@ -631,12 +772,25 @@ namespace Poker_Card
                 Schedule(_loseCrackDelay, () => _spawner.Crack(_loseCrackLines, _loseCrackSegments, _loseCrackDrawSeconds, _loseCrackLife));
                 // 프로토타입은 화면 전체를 흑백으로 만든다. UI에는 그 필터가 없어서 회색 막으로 색이 빠진 느낌만 낸다.
                 Schedule(_loseWashDelay, () => _fx.Flash(_loseWashColor, _loseWashOpacity, _loseWashDuration));
-                _fx.ShowBanner(_defeatText, _defeatSub, _defeatColor, false);
+                ShowEndOverlay(false);
             }
             else
             {
                 _fx.ShowBanner(_endDrawText, _endDrawSub, _drawColor, false);
             }
+        }
+
+        // 버튼으로 새 게임을 시작할 수 있을 때는 결과 화면을, 아니면 이전처럼 배너를 보여 준다.
+        private void ShowEndOverlay(bool win)
+        {
+            if (_resultView == null)
+            {
+                _fx.ShowBanner(win ? _victoryText : _defeatText, win ? _victorySub : _defeatSub, win ? _victoryColor : _defeatColor, win);
+                return;
+            }
+
+            var state = _controller.State;
+            _endOverlay.Show(win, _controller.Round, state.Player.Hp, state.Enemy.Hp, _endWinFormat, _endLoseFormat, _endHpFormat);
         }
 
         private void PlayRoundBanner(int round)
@@ -652,6 +806,23 @@ namespace Poker_Card
         {
             // 정산 직전에 상대 액티브 컷인이 돌고 있다면 그것이 끝난 뒤에 점수 연출을 시작한다.
             float time = _cutInBusyFor;
+
+            // 점수판은 정산이 시작되는 순간 0점으로 먼저 떠 있고, 뒤에서 숫자가 올라간다.
+            if (_showdown != null)
+            {
+                Schedule(time, () =>
+                {
+                    _showdown.Show(_playerLabel, _enemyLabel, _pokerHand != null ? _pokerHand.GetSelectedCards() : null,
+                        _controller.EnemyBestCards, _enemyHandView != null ? _enemyHandView.BackSprite : null);
+                });
+                Schedule(time + _showdown.IntroSeconds, _showdown.OpenCards);
+            }
+
+            // 프로토타입 순서: 패를 하나씩 뒤집어 공개하고 잠깐 쉰 뒤에 족보 연출이 시작된다.
+            if (_showdown != null)
+            {
+                time += _showdown.IntroSeconds + _showdown.RevealSeconds + _afterRevealPause;
+            }
 
             var handFx = FindHandFx(preview.PlayerHand.HandRank);
             if (handFx != null && handFx.Tier >= 1)
@@ -673,8 +844,18 @@ namespace Poker_Card
             if (_settleSummary != null)
             {
                 Schedule(time, _settleSummary.BeginCount);
-                time += _settleSummary.CountDuration;
             }
+
+            if (_showdown != null)
+            {
+                Schedule(time, () =>
+                {
+                    _showdown.ShowDetails(preview.PlayerHand.Name, preview.EnemyHand.Name);
+                    _showdown.CountTo(preview.PlayerBaseScore, preview.EnemyBaseScore, _scoreCountSeconds);
+                });
+            }
+
+            time += _scoreCountSeconds;
 
             if (preview.PlayerCrit)
             {
@@ -689,6 +870,16 @@ namespace Poker_Card
             }
 
             time += _collisionDelay;
+
+            // 두 점수가 부딪히려고 달려드는 동안 기다렸다가, 닿는 순간 충돌 연출을 터뜨린다.
+            if (_showdown != null)
+            {
+                bool hasWinner = preview.Winner != BattleWinner.Draw;
+                bool playerWon = preview.Winner == BattleWinner.Player;
+                Schedule(time, () => _showdown.Clash(hasWinner, playerWon));
+                time += _showdown.ClashSeconds;
+            }
+
             Schedule(time, PlayCollision);
 
             if (preview.Winner == BattleWinner.Draw)
@@ -811,6 +1002,13 @@ namespace Poker_Card
         private void PlayHandBanner(HandFx handFx, PokerHandResult hand)
         {
             bool topTier = handFx.Tier >= 4;
+
+            // 프로토타입: 족보 배너와 함께 점수판의 내 카드가 차례로 통통 튄다.
+            if (_showdown != null)
+            {
+                _showdown.HopMine();
+            }
+
             _fx.ShowBanner(handFx.EnglishName, string.Format(_handBannerSubFormat, hand.Name, hand.Score), handFx.Color, topTier);
 
             if (handFx.Tier >= _tierConfettiThreshold)
@@ -829,7 +1027,15 @@ namespace Poker_Card
             _fx.Flash(_critFlashColor, _critFlashOpacity, _critFlashDuration);
             _fx.Shake(_critShakePower);
             _fx.ShowBanner(_critText, string.Format(_critSubFormat, isPlayer ? _playerLabel : _enemyLabel, score), _critColor, false);
-            Vector2 critPosition = _spawner.ToLocal(isPlayer ? _playerHud : _enemyHud);
+            // 점수판이 있으면 그 점수 숫자가 최종 점수로 바뀌며 튀고, 별도 그 숫자 자리에서 터진다.
+            RectTransform critTarget = isPlayer ? _playerHud : _enemyHud;
+            if (_showdown != null)
+            {
+                _showdown.SetScore(isPlayer, score);
+                critTarget = isPlayer ? _showdown.MyScoreRect : _showdown.EnemyScoreRect;
+            }
+
+            Vector2 critPosition = _spawner.ToLocal(critTarget);
             _spawner.Ring(critPosition, _critFlashColor, _collisionRingSize, _collisionRingDuration);
             _spawner.Star(critPosition, _critFlashColor, _critStarSize);
         }
@@ -845,7 +1051,7 @@ namespace Poker_Card
         private void PlayCollision()
         {
             Pulse(_hitPulse);
-            Vector2 center = _spawner.ToLocal(_eventBox);
+            Vector2 center = _spawner.ToLocal(_showdown != null ? _showdown.VersusRect : _eventBox);
             _fx.Flash(Color.white, _collisionFlashOpacity, _collisionFlashDuration);
             _fx.Shake(_collisionShakePower);
             _spawner.Ring(center, Color.white, _collisionRingSize, _collisionRingDuration);
@@ -877,6 +1083,8 @@ namespace Poker_Card
         private void PlayHpLost(bool isPlayer, int amount, int maxHp, float beforePercent, float afterPercent)
         {
             Pulse(_hitPulse);
+            (isPlayer ? _playerHudHit : _enemyHudHit).Play();
+            RefreshMood();
             float ratio = amount / (float)maxHp;
             bool heavy = ratio >= _heavyHitRatio;
             StartHitStop(heavy ? _heavyHitStop : _lightHitStop);
@@ -915,6 +1123,7 @@ namespace Poker_Card
             {
                 case EffectLogKind.BattleStarted:
                     _cutInSeen.Clear();
+                    RefreshMood();
                     break;
                 case EffectLogKind.ActiveUsed:
                     PlayActiveUsed(entry.IsPlayer, entry.Card);
@@ -1121,6 +1330,7 @@ namespace Poker_Card
         private void PlayHealed(bool isPlayer, int amount)
         {
             Vector2 position = _spawner.ToLocal(isPlayer ? _playerHud : _enemyHud);
+            RefreshMood();
             _spawner.Popup(position, string.Format(_healFormat, amount), _healColor, _supportFontSize);
             _spawner.Sparkle(isPlayer ? _playerHud : _enemyHud, _healSparkleColor, _healSparkleCount);
         }

@@ -193,6 +193,9 @@ namespace Poker_Card
             RoundStarted?.Invoke(_round);
         }
 
+        // 정산 때 가운데 점수판이 상대가 낸 5장을 보여 주는 데 쓴다.
+        public IReadOnlyList<PokerCardData> EnemyBestCards => _enemy.Best.Cards;
+
         private void OnHandSubmitted(IReadOnlyList<PokerCardData> cards)
         {
             _playerResult = _evaluator.Evaluate(cards);

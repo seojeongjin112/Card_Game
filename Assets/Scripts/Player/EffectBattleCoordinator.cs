@@ -62,10 +62,17 @@ namespace Effect_Card
             public IReadOnlyList<EffectCardData> PlayerPassives { get; }
             public IReadOnlyList<EffectCardData> EnemyPassives { get; }
 
+            // 치명타 배수를 곱하기 전의 점수. 점수판이 먼저 이 값까지 올라가고, 치명타가 터질 때 최종 점수로 바뀌는 데 쓴다.
+            public int PlayerBaseScore { get; }
+            public int EnemyBaseScore { get; }
+
             public SettlePreview(int playerScore, int enemyScore, bool playerCrit, bool enemyCrit,
                 PokerHandResult playerHand, PokerHandResult enemyHand, BattleWinner winner,
-                IReadOnlyList<EffectCardData> playerPassives, IReadOnlyList<EffectCardData> enemyPassives)
+                IReadOnlyList<EffectCardData> playerPassives, IReadOnlyList<EffectCardData> enemyPassives,
+                int playerBaseScore, int enemyBaseScore)
             {
+                PlayerBaseScore = playerBaseScore;
+                EnemyBaseScore = enemyBaseScore;
                 PlayerPassives = playerPassives;
                 EnemyPassives = enemyPassives;
                 PlayerScore = playerScore;
@@ -219,7 +226,7 @@ namespace Effect_Card
                 : BattleWinner.Draw;
 
             ScoresResolved?.Invoke(new SettlePreview(playerScore, enemyScore, playerCrit, enemyCrit, playerHand, enemyHand, winner,
-                playerCalc.ContributingPassives, enemyCalc.ContributingPassives));
+                playerCalc.ContributingPassives, enemyCalc.ContributingPassives, playerCalc.FinalScore, enemyCalc.FinalScore));
 
             int totalDamage = 0;
             if (winner != BattleWinner.Draw)
