@@ -10,6 +10,7 @@ namespace Effect_Card
         [SerializeField] private int _epicMax = 6;
         [SerializeField] private int _legendMax = 2;
         [SerializeField] private int _baseSlots = 5;
+        [SerializeField] private int _starterCount = 3;
         [SerializeField] private int _draftOfferCount = 3;
         [SerializeField] private int _activeUsableRounds = 3;
 
@@ -17,6 +18,7 @@ namespace Effect_Card
         public int EpicMax => _epicMax;
         public int LegendMax => _legendMax;
         public int BaseSlots => _baseSlots;
+        public int StarterCount => _starterCount;
         public int DraftOfferCount => _draftOfferCount;
 
         // 액티브는 첫 사용 라운드부터 이 횟수만큼만 쓸 수 있고 그 뒤 삭제된다.
