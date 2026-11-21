@@ -17,7 +17,15 @@ namespace Poker_Card
         [SerializeField] private string _usedFormat = "사용: {0}";
         [SerializeField] private string _noneText = "없음";
 
+        [SerializeField] private float _countDuration = 0.8f;
+        [SerializeField] private float _pulseScale = 0.04f;
+
         private EffectBattleCoordinator _coordinator;
+        private EffectBattleCoordinator.SettleResult _result;
+        private float _elapsed;
+        private bool _counting;
+        private int _shownPlayer = -1;
+        private int _shownEnemy = -1;
 
         private void OnEnable()
         {
@@ -72,14 +80,68 @@ namespace Poker_Card
         {
             if (_coordinator.IsRoundOpen)
             {
+                _counting = false;
+                transform.localScale = Vector3.one;
                 _text.text = string.Empty;
+            }
+        }
+
+        private void Update()
+        {
+            Tick(Time.deltaTime);
+        }
+
+        // 프로토타입처럼 처음엔 0에서 시작해 빠르게 올라가다 천천히 멈추는(ease-out) 숫자 연출. 테스트가 시간을 직접 넘길 수 있게 Tick을 연다.
+        public void Tick(float dt)
+        {
+            if (!_counting)
+            {
+                return;
+            }
+
+            _elapsed += dt;
+            float k = Mathf.Min(1f, _elapsed / _countDuration);
+            float eased = 1f - Mathf.Pow(1f - k, 3f);
+            int player = Mathf.RoundToInt(_result.PlayerScore * eased);
+            int enemy = Mathf.RoundToInt(_result.EnemyScore * eased);
+            if (k >= 1f)
+            {
+                _counting = false;
+                transform.localScale = Vector3.one;
+            }
+            else
+            {
+                transform.localScale = Vector3.one * (1f + _pulseScale * (1f - k));
+            }
+
+            // 값이 바뀐 프레임에만 글자를 다시 만들어서 문자열 할당을 줄인다.
+            if (player != _shownPlayer || enemy != _shownEnemy || !_counting)
+            {
+                Render(player, enemy);
             }
         }
 
         private void OnSettled(EffectBattleCoordinator.SettleResult result)
         {
-            _text.text = BuildSide(_playerLabel, result.PlayerScore, result.PlayerDetail, result.PlayerCrit, result.PlayerUsedCards)
-                + "\n" + BuildSide(_enemyLabel, result.EnemyScore, result.EnemyDetail, result.EnemyCrit, result.EnemyUsedCards);
+            _result = result;
+            _elapsed = 0f;
+            _counting = _countDuration > 0f;
+            if (_counting)
+            {
+                Render(0, 0);
+            }
+            else
+            {
+                Render(result.PlayerScore, result.EnemyScore);
+            }
+        }
+
+        private void Render(int playerScore, int enemyScore)
+        {
+            _shownPlayer = playerScore;
+            _shownEnemy = enemyScore;
+            _text.text = BuildSide(_playerLabel, playerScore, _result.PlayerDetail, _result.PlayerCrit, _result.PlayerUsedCards)
+                + "\n" + BuildSide(_enemyLabel, enemyScore, _result.EnemyDetail, _result.EnemyCrit, _result.EnemyUsedCards);
         }
 
         private string BuildSide(string label, int finalScore, EffectScoreCalculator.Result detail, bool crit,

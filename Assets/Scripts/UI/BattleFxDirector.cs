@@ -265,6 +265,11 @@ namespace Poker_Card
         [SerializeField] private UiFxGetCard _getCard;
         [SerializeField] private int _getCardActiveRounds = 3;
 
+        [Header("히트스톱 (초)")]
+        [SerializeField] private float _lightHitStop = 0.045f;
+        [SerializeField] private float _heavyHitStop = 0.1f;
+        [SerializeField] private float _critHitStop = 0.12f;
+
         [Header("배경 문양")]
         [SerializeField] private UiFxBackground _background;
         [SerializeField] private float _roundPulse = 0.6f;
@@ -347,6 +352,8 @@ namespace Poker_Card
         // 정산 중 일어나는 피해 연출을 이 시간만큼 미룬다. 점수 연출이 끝난 뒤에 맞는 모습이 나오게 하려는 것이다.
         private float _hitDelay;
         private bool _started;
+        private float _hitStopRemaining;
+        private float _savedTimeScale = 1f;
 
         // 상태 객체가 BattleController.Awake에서 만들어지므로, 모든 Awake가 끝난 Start에서 연결한다.
         private void Start()
@@ -376,11 +383,49 @@ namespace Poker_Card
         private void OnDisable()
         {
             Unsubscribe();
+            EndHitStop();
         }
 
         private void Update()
         {
+            if (_hitStopRemaining > 0f)
+            {
+                // timeScale이 0이면 deltaTime이 멈추므로 풀리는 시간은 실제 시간으로 센다.
+                _hitStopRemaining -= Time.unscaledDeltaTime;
+                if (_hitStopRemaining <= 0f)
+                {
+                    EndHitStop();
+                }
+            }
+
             Tick(Time.deltaTime);
+        }
+
+        // 프로토타입의 freeze: 강한 타격 순간에 화면 연출을 아주 잠깐 멈춰 묵직함을 준다.
+        private void StartHitStop(float seconds)
+        {
+            if (seconds <= 0f)
+            {
+                return;
+            }
+
+            if (_hitStopRemaining <= 0f)
+            {
+                _savedTimeScale = Time.timeScale;
+            }
+
+            _hitStopRemaining = Mathf.Max(_hitStopRemaining, seconds);
+            Time.timeScale = 0f;
+        }
+
+        private void EndHitStop()
+        {
+            if (_hitStopRemaining > 0f || Time.timeScale == 0f)
+            {
+                Time.timeScale = _savedTimeScale > 0f ? _savedTimeScale : 1f;
+            }
+
+            _hitStopRemaining = 0f;
         }
 
         public void Tick(float dt)
@@ -612,6 +657,7 @@ namespace Poker_Card
 
         private void PlayCrit(bool isPlayer, int score)
         {
+            StartHitStop(_critHitStop);
             _fx.Flash(_critFlashColor, _critFlashOpacity, _critFlashDuration);
             _fx.Shake(_critShakePower);
             _fx.ShowBanner(_critText, string.Format(_critSubFormat, isPlayer ? _playerLabel : _enemyLabel, score), _critColor, false);
@@ -662,6 +708,7 @@ namespace Poker_Card
             Pulse(_hitPulse);
             float ratio = amount / (float)maxHp;
             bool heavy = ratio >= _heavyHitRatio;
+            StartHitStop(heavy ? _heavyHitStop : _lightHitStop);
             var hud = isPlayer ? _playerHud : _enemyHud;
             Vector2 position = _spawner.ToLocal(hud);
             float power = Mathf.Clamp(_shakePowerBase + ratio * _shakePowerPerRatio, _shakePowerRange.x, _shakePowerRange.y);
