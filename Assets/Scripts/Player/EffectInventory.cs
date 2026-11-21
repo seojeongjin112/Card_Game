@@ -7,6 +7,23 @@ namespace Effect_Card
 {
     public class EffectInventory
     {
+        // 드래프트 창이 "이 카드를 고르면 어떻게 되는지"를 미리 보여 주는 데 쓴다. 실제로 장착하지는 않는다.
+        public readonly struct EquipPreview
+        {
+            public int Count { get; }
+            public int SlotCount { get; }
+            public int ActiveCount { get; }
+            public int PassiveCount { get; }
+
+            public EquipPreview(int count, int slotCount, int activeCount, int passiveCount)
+            {
+                Count = count;
+                SlotCount = slotCount;
+                ActiveCount = activeCount;
+                PassiveCount = passiveCount;
+            }
+        }
+
         private readonly EffectDeckRules _rules;
         private readonly List<EffectCardData> _pool;
         private readonly List<EffectCardData> _equipped = new List<EffectCardData>();
@@ -45,6 +62,31 @@ namespace Effect_Card
             }
 
             Changed?.Invoke();
+        }
+
+        // 가득 찼고 바꿀 카드를 아직 안 골랐다면 장착은 일어나지 않으므로 지금 상태 그대로 돌려준다.
+        public EquipPreview Preview(EffectCardData card, int replaceIndex)
+        {
+            var after = new List<EffectCardData>(_equipped);
+            if (replaceIndex >= 0 && replaceIndex < after.Count)
+            {
+                after[replaceIndex] = card;
+            }
+            else if (!IsFull)
+            {
+                after.Add(card);
+            }
+
+            int actives = 0;
+            foreach (var equipped in after)
+            {
+                if (equipped.IsActive)
+                {
+                    actives++;
+                }
+            }
+
+            return new EquipPreview(after.Count, _rules.GetSlotCount(after), actives, after.Count - actives);
         }
 
         public bool IsEquipped(EffectCardData card)

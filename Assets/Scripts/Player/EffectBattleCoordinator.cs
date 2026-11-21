@@ -69,6 +69,9 @@ namespace Effect_Card
         public int Round { get; private set; }
         public bool IsRoundOpen => !_roundSettled;
 
+        // 화면이 카드 설명에 "몇 라운드 사용 가능"을 쓰려고 규칙 수치를 읽을 통로다.
+        public int ActiveUsableRounds => _ruleSet.ActiveUsableRounds;
+
         // 화면이 폴링하지 않고 갱신되도록, 장착·사용·정산 등 보이는 상태가 바뀔 때마다 알린다.
         public event Action Changed;
 

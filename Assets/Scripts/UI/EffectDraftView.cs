@@ -21,6 +21,14 @@ namespace Poker_Card
         [SerializeField] private string _pickDiscardHint = "슬롯이 가득 찼습니다. 버릴 카드를 고르세요.";
         [SerializeField] private string _cannotDiscardHint = "이 카드를 버리면 슬롯이 줄어 다른 카드가 들어갈 수 없습니다.";
         [SerializeField] private string _readyHint = "확정하면 카드를 획득합니다.";
+        [SerializeField] private Text _previewText;
+        [SerializeField] private string _previewHeader = "장착 후 예상 상태";
+        [SerializeField] private string _previewEmptyText = "카드를 고르면 장착 후 상태를 미리 볼 수 있습니다.";
+        [SerializeField] private string _previewInventoryFormat = "효과 인벤토리   {0} / {1} → {2} / {3}";
+        [SerializeField] private string _previewNeedsReplaceText = "가득 참 · 교체 필요";
+        [SerializeField] private string _previewTypeFormat = "액티브 / 패시브   {0} / {1}";
+        [SerializeField] private string _activeInfoFormat = "액티브 · 첫 사용부터 {0}라운드 사용 가능";
+        [SerializeField] private string _passiveInfoText = "패시브 · 장착 즉시 상시 적용 (상대에게 공개)";
 
         private EffectBattleCoordinator _coordinator;
         private int _selectedOffer = -1;
@@ -239,6 +247,41 @@ namespace Poker_Card
 
             _hintText.text = hint;
             _confirmButton.interactable = canConfirm;
+            UpdatePreview(draft);
+        }
+
+        // 고른 카드를 장착했을 때의 인벤토리 장수, 액티브·패시브 수와 카드 설명을 보여 준다.
+        private void UpdatePreview(EffectDraft draft)
+        {
+            if (_previewText == null)
+            {
+                return;
+            }
+
+            if (_selectedOffer < 0 || _selectedOffer >= draft.Offer.Count)
+            {
+                _previewText.text = _previewHeader + "\n\n" + _previewEmptyText;
+                return;
+            }
+
+            var card = draft.Offer[_selectedOffer];
+            var inventory = draft.Inventory;
+            int replaceIndex = draft.NeedsReplace ? _selectedDiscard : -1;
+            var after = inventory.Preview(card, replaceIndex);
+
+            // 가득 찬 상태에서 바꿀 카드를 아직 안 골랐다면 장착되지 않으므로 그 사실을 먼저 알려 준다.
+            string inventoryLine = draft.NeedsReplace && replaceIndex < 0
+                ? _previewNeedsReplaceText
+                : string.Format(_previewInventoryFormat, inventory.Equipped.Count, inventory.SlotCount, after.Count, after.SlotCount);
+
+            string info = card.IsActive
+                ? string.Format(_activeInfoFormat, _coordinator.ActiveUsableRounds)
+                : _passiveInfoText;
+
+            _previewText.text = _previewHeader + "\n\n"
+                + inventoryLine + "\n"
+                + string.Format(_previewTypeFormat, after.ActiveCount, after.PassiveCount) + "\n\n"
+                + card.DisplayName + "\n" + card.Description + "\n" + info;
         }
     }
 }
