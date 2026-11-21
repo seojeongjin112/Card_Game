@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1fd2a3d5de899884fbc1d2208940ebf5, type: 3}
+  m_Name: EffectRuleSet
+  m_EditorClassIdentifier: Assembly-CSharp::Effect_Card.EffectRuleSet
+  _deckMax: 26
+  _epicMax: 6
+  _legendMax: 2
+  _baseSlots: 5
+  _draftOfferCount: 3
+  _activeUsableRounds: 3
