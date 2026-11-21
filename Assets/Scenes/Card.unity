@@ -5057,6 +5057,12 @@ MonoBehaviour:
   _legendRevealStarSize: 320
   _healSparkleColor: {r: 0.44, g: 1, b: 0.66, a: 1}
   _healSparkleCount: 22
+  _rivalPrefix: AI
+  _rivalFormat: "AI \xB7 {0}"
+  _difficultyNames:
+  - "\uC26C\uC6C0"
+  - "\uBCF4\uD1B5"
+  - "\uC5B4\uB824\uC6C0"
   _resultView: {fileID: 1029954852}
   _endWinFormat: "\uC2B9\uB9AC \xB7 {0}\uB77C\uC6B4\uB4DC"
   _endLoseFormat: "\uD328\uBC30 \xB7 {0}\uB77C\uC6B4\uB4DC"

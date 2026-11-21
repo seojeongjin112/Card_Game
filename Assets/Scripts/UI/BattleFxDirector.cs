@@ -298,6 +298,11 @@ namespace Poker_Card
         [SerializeField] private Color _healSparkleColor = new Color(0.44f, 1f, 0.66f, 1f);
         [SerializeField] private int _healSparkleCount = 22;
 
+        [Header("상대 이름표 (시작 화면에서 고른 난이도)")]
+        [SerializeField] private string _rivalPrefix = "AI";
+        [SerializeField] private string _rivalFormat = "AI · {0}";
+        [SerializeField] private string[] _difficultyNames = { "쉬움", "보통", "어려움" };
+
         [Header("결과 화면 (프로토타입 endov)")]
         [SerializeField] private BattleResultView _resultView;
         [SerializeField] private string _endWinFormat = "승리 · {0}라운드";
@@ -462,6 +467,7 @@ namespace Poker_Card
             _enemyWatcher = new SideWatcher(this, state.Enemy, false);
             _coordinator = _controller.Coordinator;
             BuildHudReactions();
+            ShowRivalDifficulty();
             _started = true;
             if (_settleSummary != null)
             {
@@ -545,6 +551,24 @@ namespace Poker_Card
             }
 
             _hitStopRemaining = 0f;
+        }
+
+        // 시작 화면에서 고른 난이도가 상대 이름표에 보이도록 "AI · 보통" 글자를 바꾼다.
+        private void ShowRivalDifficulty()
+        {
+            int index = (int)_controller.Difficulty;
+            if (index < 0 || index >= _difficultyNames.Length)
+            {
+                return;
+            }
+
+            foreach (var label in _enemyHud.GetComponentsInChildren<Text>(true))
+            {
+                if (label.text.StartsWith(_rivalPrefix))
+                {
+                    label.text = string.Format(_rivalFormat, _difficultyNames[index]);
+                }
+            }
         }
 
         // 씬에 오브젝트를 더하지 않고 기존 HUD에 흔들림을 걸고, 비네트 두 장은 효과 레이어 맨 아래에 코드로 만든다.

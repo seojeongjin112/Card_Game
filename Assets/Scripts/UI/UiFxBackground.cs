@@ -36,6 +36,25 @@ namespace Poker_Card
 
         public float Heat => _heat;
 
+        // 코드로 만들 때는 Awake가 돌기 전에 레이어와 글꼴을 정해야 하므로, 꺼 둔 채로 만들고 값을 넣은 뒤 켠다.
+        public static UiFxBackground Create(RectTransform parent, Font font)
+        {
+            var go = new GameObject("BackgroundSuits", typeof(RectTransform));
+            go.layer = parent.gameObject.layer;
+            go.transform.SetParent(parent, false);
+            var rect = (RectTransform)go.transform;
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = rect.offsetMax = Vector2.zero;
+
+            go.SetActive(false);
+            var background = go.AddComponent<UiFxBackground>();
+            background._layer = rect;
+            background._font = font;
+            go.SetActive(true);
+            return background;
+        }
+
         private void Awake()
         {
             _texts = new Text[_count];

@@ -59,8 +59,17 @@ namespace Poker_Card
             _evaluator = new PokerHandEvaluator(_scoreTable);
             _enemy = new EnemyPokerHand(_database.Cards, _evaluator, _handCount);
             _state = new BattleState(_maxHp);
+
+            // 시작 화면에서 난이도를 골라 왔으면 그 값을 쓰고, 전투 씬만 바로 실행했으면 인스펙터 값을 그대로 쓴다.
+            if (GameSession.HasDifficulty)
+            {
+                _difficulty = GameSession.Difficulty;
+            }
+
             SetUpEffects();
         }
+
+        public EnemyDifficulty Difficulty => _difficulty;
 
         private void SetUpEffects()
         {
