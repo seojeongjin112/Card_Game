@@ -47,6 +47,11 @@ namespace Effect_Card
             Changed?.Invoke();
         }
 
+        public bool IsEquipped(EffectCardData card)
+        {
+            return _equipped.Contains(card);
+        }
+
         public bool TryEquip(EffectCardData card)
         {
             if (IsFull || !_pool.Contains(card))
@@ -82,6 +87,18 @@ namespace Effect_Card
 
             _pool.Remove(card);
             _equipped[equippedIndex] = card;
+            Changed?.Invoke();
+            return true;
+        }
+
+        // 3라운드가 지난 액티브를 지우는 용도다. 빠진 카드는 풀로 돌아가지 않는다.
+        public bool TryRemove(EffectCardData card)
+        {
+            if (!_equipped.Remove(card))
+            {
+                return false;
+            }
+
             Changed?.Invoke();
             return true;
         }
