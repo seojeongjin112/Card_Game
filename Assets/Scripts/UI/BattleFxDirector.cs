@@ -315,22 +315,37 @@ namespace Poker_Card
         [SerializeField] private string _endDrawSub = "무승부";
         [SerializeField] private Color _victoryColor = new Color(1f, 0.82f, 0.25f, 1f);
         [SerializeField] private Color _defeatColor = new Color(1f, 0.2f, 0.2f, 1f);
-        [SerializeField] private float _victoryFlashOpacity = 0.7f;
-        [SerializeField] private float _victoryFlashDuration = 0.5f;
-        [SerializeField] private float _victoryRingSize = 1100f;
-        [SerializeField] private float _victoryRingDuration = 0.9f;
-        [SerializeField] private int _victoryBurstCount = 90;
-        [SerializeField] private float _victoryBurstSpeed = 420f;
-        [SerializeField] private int _victoryConfettiCount = 220;
-        [SerializeField] private int _victorySecondConfettiCount = 120;
-        [SerializeField] private float _victorySecondConfettiDelay = 0.8f;
-        [SerializeField] private float _defeatFlashOpacity = 0.75f;
-        [SerializeField] private float _defeatFlashDuration = 0.7f;
-        [SerializeField] private float _defeatShake = 1.6f;
-        [SerializeField] private int _crackCount = 9;
-        [SerializeField] private float _crackLength = 520f;
-        [SerializeField] private float _crackThickness = 5f;
-        [SerializeField] private float _crackLife = 2.4f;
+        [Header("승리 (프로토타입 값)")]
+        [SerializeField] private Color _winFlashColor = new Color(1f, 0.88f, 0.54f, 1f);
+        [SerializeField] private float _winFlashOpacity = 0.6f;
+        [SerializeField] private float _winFlashDuration = 0.5f;
+        [SerializeField] private float _winBurstDelay = 0.45f;
+        [SerializeField] private float _winRingSize = 900f;
+        [SerializeField] private float _winRingDuration = 0.9f;
+        [SerializeField] private int _winBurstCount = 80;
+        [SerializeField] private float _winBurstSpeed = 420f;
+        [SerializeField] private Color[] _winBurstColors =
+        {
+            new Color(1f, 0.88f, 0.54f, 1f), Color.white, new Color(0.16f, 0.42f, 0.74f, 1f), new Color(1f, 0.35f, 0.24f, 1f)
+        };
+        [SerializeField] private int _winConfettiCount = 220;
+        [SerializeField] private int _winSecondConfettiCount = 120;
+        [SerializeField] private float _winSecondConfettiDelay = 1.5f;
+
+        [Header("패배 (프로토타입 값)")]
+        [SerializeField] private Color _loseFlashColor = new Color(1f, 0.16f, 0.16f, 1f);
+        [SerializeField] private float _loseFlashOpacity = 0.5f;
+        [SerializeField] private float _loseFlashDuration = 0.6f;
+        [SerializeField] private float _loseShake = 1.6f;
+        [SerializeField] private float _loseCrackDelay = 0.2f;
+        [SerializeField] private int _loseCrackLines = 9;
+        [SerializeField] private int _loseCrackSegments = 6;
+        [SerializeField] private float _loseCrackDrawSeconds = 0.6f;
+        [SerializeField] private float _loseCrackLife = 6.8f;
+        [SerializeField] private Color _loseWashColor = new Color(0.45f, 0.45f, 0.45f, 1f);
+        [SerializeField] private float _loseWashOpacity = 0.5f;
+        [SerializeField] private float _loseWashDelay = 0.7f;
+        [SerializeField] private float _loseWashDuration = 6f;
 
         [Header("드래프트 카드 공개 연출")]
         [SerializeField] private EffectDraftView _draftView;
@@ -587,25 +602,23 @@ namespace Poker_Card
         {
             if (winner == BattleWinner.Player)
             {
-                _fx.Flash(_victoryColor, _victoryFlashOpacity, _victoryFlashDuration);
-                _spawner.Ring(Vector2.zero, _victoryColor, _victoryRingSize, _victoryRingDuration);
-                _spawner.Burst(Vector2.zero, _hitBurstColors, _victoryBurstCount, _victoryBurstSpeed);
-                _spawner.Confetti(_victoryConfettiCount);
-                Schedule(_victorySecondConfettiDelay, () => _spawner.Confetti(_victorySecondConfettiCount));
+                _fx.Flash(_winFlashColor, _winFlashOpacity, _winFlashDuration);
+                Schedule(_winBurstDelay, () =>
+                {
+                    _spawner.Burst(Vector2.zero, _winBurstColors, _winBurstCount, _winBurstSpeed);
+                    _spawner.Ring(Vector2.zero, _winFlashColor, _winRingSize, _winRingDuration);
+                });
+                _spawner.Confetti(_winConfettiCount);
+                Schedule(_winSecondConfettiDelay, () => _spawner.Confetti(_winSecondConfettiCount));
                 _fx.ShowBanner(_victoryText, _victorySub, _victoryColor, true);
             }
             else if (winner == BattleWinner.Enemy)
             {
-                _fx.Flash(_defeatColor, _defeatFlashOpacity, _defeatFlashDuration);
-                _fx.Shake(_defeatShake);
-                for (int i = 0; i < _crackCount; i++)
-                {
-                    float angle = (360f / _crackCount) * i + UnityEngine.Random.Range(-12f, 12f);
-                    var dir = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad));
-                    float length = _crackLength * UnityEngine.Random.Range(0.6f, 1f);
-                    _spawner.Segment(dir * 40f, dir * length, _defeatColor, _crackThickness, _crackLife);
-                }
-
+                _fx.Flash(_loseFlashColor, _loseFlashOpacity, _loseFlashDuration);
+                _fx.Shake(_loseShake);
+                Schedule(_loseCrackDelay, () => _spawner.Crack(_loseCrackLines, _loseCrackSegments, _loseCrackDrawSeconds, _loseCrackLife));
+                // 프로토타입은 화면 전체를 흑백으로 만든다. UI에는 그 필터가 없어서 회색 막으로 색이 빠진 느낌만 낸다.
+                Schedule(_loseWashDelay, () => _fx.Flash(_loseWashColor, _loseWashOpacity, _loseWashDuration));
                 _fx.ShowBanner(_defeatText, _defeatSub, _defeatColor, false);
             }
             else

@@ -21,6 +21,7 @@ namespace Poker_Card
             public float FadeStart;
             public Color Color;
             public bool IsText;
+            public float Delay;
         }
 
         [SerializeField] private RectTransform _layer;
@@ -73,6 +74,15 @@ namespace Poker_Card
         [SerializeField] private float _sparkStartScale = 0.4f;
         [SerializeField] private float _sparkEndScale = 1.2f;
         [SerializeField] private float _sparkFadeStart = 0.5f;
+
+        [Header("균열 (프로토타입 FX.crack, 1440x810 기준)")]
+        [SerializeField] private float _crackReferenceHeight = 810f;
+        [SerializeField] private float _crackOriginY = 380f;
+        [SerializeField] private Vector2 _crackLengthRange = new Vector2(50f, 120f);
+        [SerializeField] private float _crackThickness = 4f;
+        [SerializeField] private Color _crackColor = Color.white;
+        [SerializeField] private Color _crackShadowColor = new Color(0f, 0f, 0f, 0.9f);
+        [SerializeField] private Vector2 _crackShadowOffset = new Vector2(3f, -3f);
 
         private readonly List<FxItem> _active = new List<FxItem>();
         private readonly Stack<FxItem> _imagePool = new Stack<FxItem>();
@@ -348,11 +358,55 @@ namespace Poker_Card
             }
         }
 
+        // 프로토타입의 FX.crack: 화면 가운데에서 갈라진 선이 뻗어 나가듯 그려지고, 한동안 남았다가 사라진다.
+        // 선은 조각(선분)마다 시간차를 두고 나타나 "그려지는" 모습을 만든다. 검은 그림자 선을 흰 선 밑에 깐다.
+        public void Crack(int lineCount, int segmentsPerLine, float drawSeconds, float life)
+        {
+            float scale = _layer.rect.height / _crackReferenceHeight;
+            var origin = new Vector2(0f, (_crackReferenceHeight / 2f - _crackOriginY) * scale);
+            for (int line = 0; line < lineCount; line++)
+            {
+                float angle = (float)line / lineCount * Mathf.PI * 2f + Random.value * 0.4f;
+                Vector2 point = origin;
+                for (int k = 0; k < segmentsPerLine; k++)
+                {
+                    float direction = angle + (Random.value - 0.5f);
+                    float length = Random.Range(_crackLengthRange.x, _crackLengthRange.y) * scale;
+                    Vector2 next = point + new Vector2(Mathf.Cos(direction), Mathf.Sin(direction)) * length;
+                    float delay = drawSeconds * k / segmentsPerLine;
+                    AddDelayedSegment(point + _crackShadowOffset * scale, next + _crackShadowOffset * scale, _crackShadowColor, _crackThickness * 1.8f, delay, life - delay);
+                    AddDelayedSegment(point, next, _crackColor, _crackThickness, delay, life - delay);
+                    point = next;
+                }
+            }
+        }
+
+        private void AddDelayedSegment(Vector2 from, Vector2 to, Color color, float thickness, float delay, float life)
+        {
+            Segment(from, to, color, thickness, life);
+            var item = _active[_active.Count - 1];
+            item.Delay = delay;
+            item.Rect.gameObject.SetActive(delay <= 0f);
+            // 끝점이 겹쳐 이어 보이도록 선분을 선 굵기만큼 늘린다.
+            item.Rect.sizeDelta += new Vector2(thickness, 0f);
+        }
+
         public void Tick(float dt)
         {
             for (int i = _active.Count - 1; i >= 0; i--)
             {
                 var item = _active[i];
+                if (item.Delay > 0f)
+                {
+                    item.Delay -= dt;
+                    if (item.Delay <= 0f)
+                    {
+                        item.Rect.gameObject.SetActive(true);
+                    }
+
+                    continue;
+                }
+
                 item.Age += dt;
                 float t = Mathf.Clamp01(item.Age / item.Life);
                 if (t >= 1f)
@@ -388,6 +442,7 @@ namespace Poker_Card
             var pool = isText ? _textPool : _imagePool;
             var item = pool.Count > 0 ? pool.Pop() : Create(isText);
             item.Age = 0f;
+            item.Delay = 0f;
             item.Velocity = Vector2.zero;
             item.Gravity = 0f;
             item.RotationVelocity = 0f;
