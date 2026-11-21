@@ -25,6 +25,7 @@ namespace Poker_Card
         [SerializeField] private EnemyDifficulty _difficulty = EnemyDifficulty.Normal;
         [SerializeField] private EffectHandView _effectHandView;
         [SerializeField] private EffectDraftView _effectDraftView;
+        [SerializeField] private float _dealDelayAfterDraft = 0.6f;
         [SerializeField] private EnemyEffectView _enemyEffectView;
         [SerializeField] private EffectSettleSummaryView _settleSummaryView;
         [SerializeField] private EffectPileView _effectPileView;
@@ -160,8 +161,8 @@ namespace Poker_Card
         // 프로토타입은 효과 카드를 고른 뒤에 패를 나눠 준다. 드래프트 창에 가려진 채 끝난 나눔 연출을 창이 닫힐 때 다시 보여 준다.
         private void OnDraftClosed()
         {
-            _handView.ReplayDeal();
-            _enemyHandView.ShowBacks();
+            _handView.ReplayDeal(_dealDelayAfterDraft);
+            _enemyHandView.ShowBacks(_dealDelayAfterDraft);
         }
 
         private void OnDisable()

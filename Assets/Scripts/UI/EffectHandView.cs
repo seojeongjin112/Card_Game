@@ -16,6 +16,10 @@ namespace Poker_Card
         [SerializeField] private string _activeRemainingFormat = "액티브 · {0}라운드 남음";
         [SerializeField] private string _activeUsedFormat = "사용함 · {0}라운드 남음";
 
+        [Header("호버·흔들림 (프로토타입 값을 1920x1080으로 환산)")]
+        [SerializeField] private float _hoverLift = 77f;
+        [SerializeField] private float _hoverScale = 1.28f;
+
         private EffectBattleCoordinator _coordinator;
 
         private void Awake()
@@ -23,6 +27,7 @@ namespace Poker_Card
             for (int i = 0; i < _slots.Length; i++)
             {
                 _slots[i].Initialize(i);
+                _slots[i].ConfigureMotion(true, _hoverLift, _hoverScale);
             }
         }
 
@@ -45,6 +50,26 @@ namespace Poker_Card
             }
 
             Unsubscribe();
+        }
+
+        // 장착 중인 카드의 슬롯 뷰. 날아와 앉는 연출처럼 슬롯 자체를 움직여야 할 때 쓴다. 없으면 null이다.
+        public EffectCardSlotView GetSlotView(EffectCardData card)
+        {
+            if (_coordinator == null)
+            {
+                return null;
+            }
+
+            var equipped = _coordinator.Player.Inventory.Equipped;
+            for (int i = 0; i < equipped.Count && i < _slots.Length; i++)
+            {
+                if (equipped[i] == card)
+                {
+                    return _slots[i];
+                }
+            }
+
+            return null;
         }
 
         // lit이 null이면 모두 원래대로, 아니면 그 카드만 밝히고 나머지는 흐리게 한다.

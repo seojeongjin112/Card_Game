@@ -96,6 +96,9 @@ namespace Poker_Card
         // 카드가 공개되는 순간을 알린다. 연출 쪽이 그 자리에서 번쩍임·링을 터뜨린다.
         public event Action<RectTransform, EffectCardData> CardRevealed;
 
+        // 고른 카드가 장착됐을 때 알린다. 매개변수는 카드가 있던 화면 위치(월드 좌표)이며, 거기서 손패 자리로 날아가는 연출에 쓴다.
+        public event Action<Vector3, EffectCardData> CardEquipped;
+
         private void Awake()
         {
             for (int i = 0; i < _offerSlots.Length; i++)
@@ -311,7 +314,14 @@ namespace Poker_Card
             }
 
             int discard = draft.NeedsReplace ? _selectedDiscard : -1;
-            draft.TryPick(draft.Offer[_selectedOffer], discard);
+            var picked = draft.Offer[_selectedOffer];
+
+            // 창이 닫히면 제안 슬롯이 사라지므로, 카드가 날아갈 출발 위치를 미리 기억해 둔다.
+            Vector3 from = _offerSlots[_selectedOffer].transform.position;
+            if (draft.TryPick(picked, discard))
+            {
+                CardEquipped?.Invoke(from, picked);
+            }
 
             // 장착 변경 알림은 제안이 비워지기 전에 오므로, 끝난 뒤 한 번 더 그려야 화면이 닫힌다.
             Refresh();

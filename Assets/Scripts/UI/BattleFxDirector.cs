@@ -260,6 +260,15 @@ namespace Poker_Card
         [SerializeField] private UiFxGetCard _getCard;
         [SerializeField] private int _getCardActiveRounds = 3;
 
+        [Header("장착 연출 (프로토타입 equip)")]
+        [SerializeField] private float _equipBurstDelay = 0.45f;
+        [SerializeField] private Color _equipColor = new Color(1f, 0.88f, 0.54f, 1f);
+        [SerializeField] private Color[] _equipBurstColors = { new Color(1f, 0.88f, 0.54f, 1f), Color.white };
+        [SerializeField] private float _equipRingSize = 240f;
+        [SerializeField] private float _equipRingDuration = 0.5f;
+        [SerializeField] private int _equipBurstCount = 20;
+        [SerializeField] private float _equipBurstSpeed = 120f;
+
         [Header("별·방울·반짝임 크기")]
         [SerializeField] private float _hitStarBase = 240f;
         [SerializeField] private float _hitStarPerRatio = 400f;
@@ -542,6 +551,8 @@ namespace Poker_Card
             {
                 _draftView.CardRevealed -= OnCardRevealed;
                 _draftView.CardRevealed += OnCardRevealed;
+                _draftView.CardEquipped -= OnCardEquipped;
+                _draftView.CardEquipped += OnCardEquipped;
             }
         }
 
@@ -567,6 +578,7 @@ namespace Poker_Card
             if (_draftView != null)
             {
                 _draftView.CardRevealed -= OnCardRevealed;
+                _draftView.CardEquipped -= OnCardEquipped;
             }
         }
 
@@ -1052,6 +1064,30 @@ namespace Poker_Card
             }
 
             _fx.ShowBanner(legend ? _legendGetText : _epicGetText, string.Format(_getSubFormat, card.DisplayName), accent, legend);
+        }
+
+        // 고른 카드가 손패 슬롯으로 날아와 앉고, 앉을 즈음에 금색 링과 불꽃이 터진다.
+        private void OnCardEquipped(Vector3 worldFrom, EffectCardData card)
+        {
+            if (_handView == null)
+            {
+                return;
+            }
+
+            var slot = _handView.GetSlotView(card);
+            if (slot == null)
+            {
+                return;
+            }
+
+            slot.PlayArrive(worldFrom);
+            var rect = (RectTransform)slot.transform;
+            Schedule(_equipBurstDelay, () =>
+            {
+                Vector2 position = _spawner.ToLocal(rect);
+                _spawner.Ring(position, _equipColor, _equipRingSize, _equipRingDuration);
+                _spawner.Burst(position, _equipBurstColors, _equipBurstCount, _equipBurstSpeed);
+            });
         }
 
         // 드래프트 카드가 공개되는 순간 그 자리에서 터진다. 일반·희귀는 조용히 넘어가고 영웅·전설만 연출한다.

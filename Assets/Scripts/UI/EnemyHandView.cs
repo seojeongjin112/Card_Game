@@ -36,7 +36,7 @@ namespace Poker_Card
             }
         }
 
-        public void ShowBacks()
+        public void ShowBacks(float delay = 0f)
         {
             foreach (var face in _faces)
             {
@@ -44,7 +44,7 @@ namespace Poker_Card
                 face.color = Color.white;
             }
 
-            _dropTime = 0f;
+            _dropTime = -delay;
             _dropping = true;
             ApplyDrop();
         }

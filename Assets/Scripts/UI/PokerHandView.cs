@@ -112,11 +112,11 @@ namespace Poker_Card
         }
 
         // 패는 그대로 두고 나눠 주는 연출만 다시 보여 준다.
-        public void ReplayDeal()
+        public void ReplayDeal(float delay = 0f)
         {
             for (int i = 0; i < _slots.Length; i++)
             {
-                _slots[i].PlayDeal(i * _dealStagger);
+                _slots[i].PlayDeal(delay + i * _dealStagger);
             }
         }
 

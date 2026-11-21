@@ -13,7 +13,20 @@ namespace Poker_Card
         [SerializeField] private string _revealedActiveFormat = "액티브 · {0}라운드 남음";
         [SerializeField] private string _emptyText = "빈 슬롯";
 
+        [Header("호버 (프로토타입 값을 1920x1080으로 환산)")]
+        [SerializeField] private float _hoverLift = 13f;
+        [SerializeField] private float _hoverScale = 1.15f;
+
         private EffectBattleCoordinator _coordinator;
+
+        private void Awake()
+        {
+            for (int i = 0; i < _slots.Length; i++)
+            {
+                _slots[i].Initialize(i);
+                _slots[i].ConfigureMotion(false, _hoverLift, _hoverScale);
+            }
+        }
 
         private void OnEnable()
         {
