@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Core;
+using Effect_Card;
 using UnityEngine;
 
 namespace Poker_Card
@@ -15,17 +17,104 @@ namespace Poker_Card
         [SerializeField] private int _maxHp = 100;
         [SerializeField] private int _handCount = 7;
 
+        // 플레이어가 효과 카드를 고르고 쓰는 화면이 생기기 전에 켜면 상대만 효과를 쓰게 되므로 기본은 꺼 둔다.
+        [SerializeField] private bool _useEffects;
+        [SerializeField] private EffectCardDatabase _effectDatabase;
+        [SerializeField] private EffectRuleSet _effectRuleSet;
+        [SerializeField] private EnemyAiSettings _enemyAiSettings;
+        [SerializeField] private EnemyDifficulty _difficulty = EnemyDifficulty.Normal;
+        [SerializeField] private EffectHandView _effectHandView;
+        [SerializeField] private EffectDraftView _effectDraftView;
+        [SerializeField] private EnemyEffectView _enemyEffectView;
+        [SerializeField] private EffectSettleSummaryView _settleSummaryView;
+        [SerializeField] private EffectPileView _effectPileView;
+
         private PokerHandEvaluator _evaluator;
         private EnemyPokerHand _enemy;
         private BattleState _state;
+        private EffectBattleCoordinator _coordinator;
+        private EnemyActiveAi _enemyAi;
         private PokerHandResult? _playerResult;
         private bool _isSettled;
+
+        // 효과 카드 화면이 드래프트와 액티브 사용을 이어 가는 통로다. 효과를 끄면 null이다.
+        public EffectBattleCoordinator Coordinator => _coordinator;
 
         private void Awake()
         {
             _evaluator = new PokerHandEvaluator(_scoreTable);
             _enemy = new EnemyPokerHand(_database.Cards, _evaluator, _handCount);
             _state = new BattleState(_maxHp);
+            SetUpEffects();
+        }
+
+        private void SetUpEffects()
+        {
+            // 효과를 끈 전투에서는 빈 효과 카드 상자가 보이지 않게 숨긴다.
+            if (_effectHandView != null)
+            {
+                _effectHandView.gameObject.SetActive(false);
+            }
+
+            if (_enemyEffectView != null)
+            {
+                _enemyEffectView.gameObject.SetActive(false);
+            }
+
+            if (_settleSummaryView != null)
+            {
+                _settleSummaryView.gameObject.SetActive(false);
+            }
+
+            if (_effectPileView != null)
+            {
+                _effectPileView.gameObject.SetActive(false);
+            }
+
+            if (!_useEffects)
+            {
+                return;
+            }
+
+            if (_effectDatabase == null || _effectRuleSet == null || _enemyAiSettings == null)
+            {
+                Debug.LogWarning("효과 카드 설정 에셋이 비어 있어 효과 없이 진행한다.", this);
+                return;
+            }
+
+            var profile = _enemyAiSettings.GetProfile(_difficulty);
+            _coordinator = new EffectBattleCoordinator(_state, _effectDatabase, _effectRuleSet, profile.PrefersHighGradeDraft);
+            _enemyAi = new EnemyActiveAi(_enemyAiSettings, _difficulty);
+
+            if (_effectHandView != null)
+            {
+                _effectHandView.gameObject.SetActive(true);
+                _effectHandView.Bind(_coordinator);
+            }
+
+            // 드래프트 창은 스스로 열고 닫으므로 오브젝트는 항상 켜 두고 조정자만 연결한다.
+            if (_effectDraftView != null)
+            {
+                _effectDraftView.Bind(_coordinator);
+            }
+
+            if (_enemyEffectView != null)
+            {
+                _enemyEffectView.gameObject.SetActive(true);
+                _enemyEffectView.Bind(_coordinator);
+            }
+
+            if (_settleSummaryView != null)
+            {
+                _settleSummaryView.gameObject.SetActive(true);
+                _settleSummaryView.Bind(_coordinator);
+            }
+
+            if (_effectPileView != null)
+            {
+                _effectPileView.gameObject.SetActive(true);
+                _effectPileView.Bind(_coordinator);
+            }
         }
 
         private void OnEnable()
@@ -53,6 +142,7 @@ namespace Poker_Card
             _enemyHandView.ShowBacks();
             _resultView.ShowRoundStart();
             RefreshHp();
+            StartEffectRound();
         }
 
         private void OnHandSubmitted(IReadOnlyList<PokerCardData> cards)
@@ -75,13 +165,29 @@ namespace Poker_Card
             }
 
             var enemyHand = _enemy.Best.Result;
-            var outcome = BattleResolver.Resolve(_playerResult.Value.Score, enemyHand.Score);
+            BattleOutcome outcome;
+
+            if (_coordinator != null)
+            {
+                // 효과 쪽 정산은 피해를 직접 적용하므로 Apply를 다시 부르면 이중으로 깎인다.
+                _enemyAi.UseActives(_coordinator, enemyHand);
+                var settled = _coordinator.Settle(_playerResult.Value, enemyHand);
+                outcome = settled.Outcome;
+
+                // 결과 문구가 상대의 최종 점수(효과 반영)를 보여 주도록 점수만 바꿔 넘긴다.
+                enemyHand = new PokerHandResult(enemyHand.HandRank, enemyHand.Name, settled.EnemyScore);
+            }
+            else
+            {
+                outcome = BattleResolver.Resolve(_playerResult.Value.Score, enemyHand.Score);
+                _state.Apply(outcome);
+            }
 
             _isSettled = true;
-            _state.Apply(outcome);
             _handView.SetLocked(true);
             _enemyHandView.Reveal(_enemy.Hand, _enemy.Best.Cards);
             _resultView.ShowRoundResult(outcome, enemyHand, _state.IsOver, _state.GetWinner());
+            _coordinator?.EndRound();
         }
 
         private void OnNextClicked()
@@ -94,6 +200,7 @@ namespace Poker_Card
             if (_state.IsOver)
             {
                 _state.Reset();
+                _coordinator?.StartNewBattle();
             }
 
             StartRound();
@@ -107,6 +214,26 @@ namespace Poker_Card
             _enemyHandView.ShowBacks();
             _handView.Deal();
             _resultView.ShowRoundStart();
+            StartEffectRound();
+        }
+
+        private void StartEffectRound()
+        {
+            if (_coordinator == null)
+            {
+                return;
+            }
+
+            _coordinator.StartRound();
+
+            // 라운드 시작의 지속 피해로 전투가 끝났다면 정산 없이 바로 결과를 보여 준다.
+            if (_state.IsOver)
+            {
+                var winner = _state.GetWinner();
+                _isSettled = true;
+                _handView.SetLocked(true);
+                _resultView.ShowRoundResult(new BattleOutcome(winner, 0), _enemy.Best.Result, true, winner);
+            }
         }
 
         private void RefreshHp()

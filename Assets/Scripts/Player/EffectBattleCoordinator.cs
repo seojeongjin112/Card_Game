@@ -1,6 +1,9 @@
+using System;
+using System.Collections.Generic;
 using Core;
 using Poker_Card;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Effect_Card
 {
@@ -24,13 +27,25 @@ namespace Effect_Card
             public bool EnemyCrit { get; }
             public BattleOutcome Outcome { get; }
 
-            public SettleResult(int playerScore, int enemyScore, bool playerCrit, bool enemyCrit, BattleOutcome outcome)
+            // 점수가 어떻게 만들어졌는지 보여 주려고 치명타 적용 전 계산 내역과 그 라운드에 쓴 카드를 함께 담는다.
+            public EffectScoreCalculator.Result PlayerDetail { get; }
+            public EffectScoreCalculator.Result EnemyDetail { get; }
+            public IReadOnlyList<EffectCardData> PlayerUsedCards { get; }
+            public IReadOnlyList<EffectCardData> EnemyUsedCards { get; }
+
+            public SettleResult(int playerScore, int enemyScore, bool playerCrit, bool enemyCrit, BattleOutcome outcome,
+                EffectScoreCalculator.Result playerDetail, EffectScoreCalculator.Result enemyDetail,
+                IReadOnlyList<EffectCardData> playerUsedCards, IReadOnlyList<EffectCardData> enemyUsedCards)
             {
                 PlayerScore = playerScore;
                 EnemyScore = enemyScore;
                 PlayerCrit = playerCrit;
                 EnemyCrit = enemyCrit;
                 Outcome = outcome;
+                PlayerDetail = playerDetail;
+                EnemyDetail = enemyDetail;
+                PlayerUsedCards = playerUsedCards;
+                EnemyUsedCards = enemyUsedCards;
             }
         }
 
@@ -46,9 +61,19 @@ namespace Effect_Card
         private readonly EffectDrawModifiers _drawModifiers;
         private readonly EnemyEffectDrafter _enemyDrafter;
 
+        // 정산이 끝난 뒤에는 다음 라운드가 시작될 때까지 액티브를 쓸 수 없다.
+        private bool _roundSettled;
+
         public EffectSideContext Player { get; private set; }
         public EffectSideContext Enemy { get; private set; }
         public int Round { get; private set; }
+        public bool IsRoundOpen => !_roundSettled;
+
+        // 화면이 폴링하지 않고 갱신되도록, 장착·사용·정산 등 보이는 상태가 바뀔 때마다 알린다.
+        public event Action Changed;
+
+        // 정산 직후 한 번. 사용한 카드 목록은 다음 라운드에 비워지므로 이 시점의 값을 복사해 넘긴다.
+        public event Action<SettleResult> Settled;
 
         public EffectBattleCoordinator(BattleState state, EffectCardDatabase database, EffectRuleSet ruleSet, bool enemyPrefersHighGrade)
         {
@@ -71,14 +96,17 @@ namespace Effect_Card
         public void StartNewBattle()
         {
             Round = 0;
+            _roundSettled = false;
             Player = CreateSide(_state.Player);
             Enemy = CreateSide(_state.Enemy);
+            Changed?.Invoke();
         }
 
         // 플레이어의 드래프트가 열렸으면 true. 선택은 UI가 Player.Draft로 이어 간다.
         public bool StartRound()
         {
             Round++;
+            _roundSettled = false;
             StartRoundFor(Player);
             StartRoundFor(Enemy);
 
@@ -86,7 +114,9 @@ namespace Effect_Card
             _defense.TryUndying(Enemy.State, Enemy.GetActivePassives());
 
             _enemyDrafter.Draft(Enemy.Draft);
-            return Player.Draft.Open();
+            bool draftOpen = Player.Draft.Open();
+            Changed?.Invoke();
+            return draftOpen;
         }
 
         public ActiveUseResult TryUseActive(bool isPlayer, EffectCardData card)
@@ -94,7 +124,7 @@ namespace Effect_Card
             var self = isPlayer ? Player : Enemy;
             var opponent = isPlayer ? Enemy : Player;
 
-            if (!self.Tracker.CanUse(card))
+            if (_roundSettled || !self.Tracker.CanUse(card))
             {
                 return ActiveUseResult.Unusable;
             }
@@ -115,6 +145,7 @@ namespace Effect_Card
             var trap = _disrupt.ResolveActiveUse(effectiveCard, self.State, opponent.State, opponent.GetActivePassives());
             if (trap.Nullified)
             {
+                Changed?.Invoke();
                 return ActiveUseResult.Nullified;
             }
 
@@ -128,6 +159,7 @@ namespace Effect_Card
             }
 
             _utility.TryRecycle(card, self.GetActivePassives(), self.Tracker);
+            Changed?.Invoke();
             return ActiveUseResult.Used;
         }
 
@@ -166,7 +198,14 @@ namespace Effect_Card
             _defense.TryUndying(Player.State, Player.GetActivePassives());
             _defense.TryUndying(Enemy.State, Enemy.GetActivePassives());
 
-            return new SettleResult(playerScore, enemyScore, playerCrit, enemyCrit, new BattleOutcome(winner, totalDamage));
+            _roundSettled = true;
+            Changed?.Invoke();
+
+            var result = new SettleResult(playerScore, enemyScore, playerCrit, enemyCrit,
+                new BattleOutcome(winner, totalDamage), playerCalc, enemyCalc,
+                Player.UsedThisRound.ToArray(), Enemy.UsedThisRound.ToArray());
+            Settled?.Invoke(result);
+            return result;
         }
 
         // 라운드가 끝났을 때 한 번 부른다. 액티브의 남은 라운드를 줄이고 0이 되면 삭제한다.
@@ -174,6 +213,7 @@ namespace Effect_Card
         {
             Player.Tracker.EndRound();
             Enemy.Tracker.EndRound();
+            Changed?.Invoke();
         }
 
         private EffectSideContext CreateSide(CombatantState state)
@@ -181,8 +221,16 @@ namespace Effect_Card
             var deck = _deckRules.BuildRandomDeck(_database.Cards);
             var inventory = new EffectInventory(deck, _deckRules);
             inventory.DealStarters(_ruleSet.StarterCount);
-            return new EffectSideContext(state, inventory, new EffectActiveTracker(inventory, _ruleSet),
+
+            // 인벤토리는 이 조정자와 수명이 같아서 구독을 따로 해제하지 않는다. 드래프트로 장착이 바뀔 때도 화면이 갱신된다.
+            inventory.Changed += RaiseChanged;
+
+            var side = new EffectSideContext(state, inventory, new EffectActiveTracker(inventory, _ruleSet),
                 new EffectDraft(inventory, _ruleSet));
+
+            // 한 번 쓴 액티브는 정체가 드러난다. 트래커도 조정자와 수명이 같아서 구독을 해제하지 않는다.
+            side.Tracker.Used += card => side.RevealedActives.Add(card);
+            return side;
         }
 
         // 폭풍 감소, 실드 소멸은 두 번째 라운드부터다. 첫 라운드는 아직 아무것도 걸려 있지 않다.
@@ -233,6 +281,11 @@ namespace Effect_Card
             return _calculator.Calculate(new EffectScoreCalculator.Input(hand.Score, hand.HandRank, side.UsedThisRound,
                 side.GetActivePassives(), side.State.Hp, side.State.MaxHp, side.SmeltStack, side.CounterBonus,
                 opponent.State.Shield, opponent.UtilityUses));
+        }
+
+        private void RaiseChanged()
+        {
+            Changed?.Invoke();
         }
 
         private static bool RollCrit(float chancePercent)

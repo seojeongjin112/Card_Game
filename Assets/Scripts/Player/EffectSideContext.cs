@@ -13,6 +13,9 @@ namespace Effect_Card
         // 이번 라운드에 실제로 효과가 적용된 액티브. 점수 계산과 감면·반격 판정이 이 목록을 본다.
         public List<EffectCardData> UsedThisRound { get; } = new List<EffectCardData>();
 
+        // 상대가 한 번이라도 쓴 액티브. 상대 화면에서 이 카드만 정체를 보여 준다.
+        public HashSet<EffectCardData> RevealedActives { get; } = new HashSet<EffectCardData>();
+
         public int SmeltStack { get; set; }
         public int CounterBonus { get; set; }
         public int UtilityUses { get; set; }
