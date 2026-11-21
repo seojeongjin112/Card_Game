@@ -47,6 +47,26 @@ namespace Poker_Card
             Unsubscribe();
         }
 
+        // 연출이 카드가 있는 자리에서 터지도록, 장착 중인 카드의 슬롯 위치를 알려 준다. 없으면 null이다.
+        public RectTransform GetSlotRect(EffectCardData card)
+        {
+            if (_coordinator == null)
+            {
+                return null;
+            }
+
+            var equipped = _coordinator.Player.Inventory.Equipped;
+            for (int i = 0; i < equipped.Count && i < _slots.Length; i++)
+            {
+                if (equipped[i] == card)
+                {
+                    return (RectTransform)_slots[i].transform;
+                }
+            }
+
+            return null;
+        }
+
         // BattleController가 조정자를 만든 뒤에 한 번 연결해 준다. 효과를 끄면 호출되지 않는다.
         public void Bind(EffectBattleCoordinator coordinator)
         {

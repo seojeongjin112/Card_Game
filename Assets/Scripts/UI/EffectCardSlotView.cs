@@ -59,6 +59,13 @@ namespace Poker_Card
             _background.color = _emptyColor;
         }
 
+        // 카드 얼굴을 따로 그리는 쪽이 이 슬롯을 클릭 영역으로만 쓰도록 자기 그림과 글자를 숨긴다.
+        public void HideVisuals()
+        {
+            _background.color = Color.clear;
+            _label.enabled = false;
+        }
+
         // 상대의 아직 쓰지 않은 액티브처럼 정체를 숨겨야 하는 카드에 쓴다.
         public void ShowHidden(string text)
         {

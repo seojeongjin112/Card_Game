@@ -1,0 +1,890 @@
+using System;
+using System.Collections.Generic;
+using Core;
+using Effect_Card;
+using UnityEngine;
+
+namespace Poker_Card
+{
+    // 전투에서 일어나는 사건(라운드 시작, 정산, 피해, 회복, 실드)을 받아 연출 도구를 순서대로 호출한다. 연출은 로직에 영향을 주지 않는다.
+    public class BattleFxDirector : MonoBehaviour
+    {
+        [Serializable]
+        private class HandFx
+        {
+            [SerializeField] private HandRank _handRank;
+            [SerializeField] private string _englishName;
+            [SerializeField] private Color _color = Color.white;
+
+            // 0이면 배너를 띄우지 않는다. 높을수록 색종이가 많아지고 4는 무지개 띠다.
+            [SerializeField] private int _tier;
+
+            public HandRank HandRank => _handRank;
+            public string EnglishName => _englishName;
+            public Color Color => _color;
+            public int Tier => _tier;
+
+            public HandFx(HandRank handRank, string englishName, Color color, int tier)
+            {
+                _handRank = handRank;
+                _englishName = englishName;
+                _color = color;
+                _tier = tier;
+            }
+        }
+
+        private readonly struct TimedAction
+        {
+            public float Time { get; }
+            public Action Action { get; }
+
+            public TimedAction(float time, Action action)
+            {
+                Time = time;
+                Action = action;
+            }
+        }
+
+        private sealed class SideWatcher
+        {
+            private readonly BattleFxDirector _owner;
+            private readonly CombatantState _state;
+            private readonly bool _isPlayer;
+
+            public SideWatcher(BattleFxDirector owner, CombatantState state, bool isPlayer)
+            {
+                _owner = owner;
+                _state = state;
+                _isPlayer = isPlayer;
+            }
+
+            public void Subscribe()
+            {
+                Unsubscribe();
+                _state.HpLost += OnHpLost;
+                _state.HpHealed += OnHpHealed;
+                _state.ShieldAdded += OnShieldAdded;
+                _state.ShieldAbsorbed += OnShieldAbsorbed;
+            }
+
+            public void Unsubscribe()
+            {
+                _state.HpLost -= OnHpLost;
+                _state.HpHealed -= OnHpHealed;
+                _state.ShieldAdded -= OnShieldAdded;
+                _state.ShieldAbsorbed -= OnShieldAbsorbed;
+            }
+
+            private void OnHpLost(int amount)
+            {
+                _owner.OnHpLost(_isPlayer, _state, amount);
+            }
+
+            private void OnHpHealed(int amount)
+            {
+                _owner.PlayHealed(_isPlayer, amount);
+            }
+
+            private void OnShieldAdded(int amount)
+            {
+                _owner.PlayShield(_isPlayer, amount, _owner._shieldAddedFormat);
+            }
+
+            private void OnShieldAbsorbed(int amount)
+            {
+                _owner.PlayShield(_isPlayer, amount, _owner._shieldAbsorbedFormat);
+            }
+        }
+
+        [SerializeField] private BattleController _controller;
+        [SerializeField] private UiFxLayer _fx;
+        [SerializeField] private UiFxSpawner _spawner;
+        [SerializeField] private RectTransform _playerHud;
+        [SerializeField] private RectTransform _enemyHud;
+        [SerializeField] private RectTransform _playerBar;
+        [SerializeField] private RectTransform _enemyBar;
+        [SerializeField] private RectTransform _eventBox;
+
+        [Header("라운드 배너")]
+        [SerializeField] private string _roundFormat = "ROUND {0}";
+        [SerializeField] private string _firstRoundSub = "나 VS AI";
+        [SerializeField] private string _nextRoundSub = "다음 라운드";
+        [SerializeField] private Color _firstRoundColor = new Color(1f, 0.35f, 0.24f, 1f);
+        [SerializeField] private Color _nextRoundColor = new Color(0.9f, 0.64f, 0.24f, 1f);
+
+        [Header("색")]
+        [SerializeField] private Color _playerHitColor = new Color(1f, 0.35f, 0.3f, 1f);
+        [SerializeField] private Color _enemyHitColor = new Color(1f, 0.88f, 0.54f, 1f);
+        [SerializeField] private Color _healColor = new Color(0.44f, 1f, 0.66f, 1f);
+        [SerializeField] private Color _shieldColor = new Color(0.61f, 0.76f, 1f, 1f);
+        [SerializeField] private Color _playerChunkColor = new Color(0.24f, 1f, 0.58f, 1f);
+        [SerializeField] private Color _enemyChunkColor = new Color(1f, 0.48f, 0.36f, 1f);
+        [SerializeField] private Color _playerFlashColor = new Color(1f, 0.16f, 0.16f, 1f);
+        [SerializeField] private Color _enemyFlashColor = Color.white;
+        [SerializeField] private Color[] _hitBurstColors = { Color.white, new Color(1f, 0.88f, 0.54f, 1f), new Color(1f, 0.35f, 0.24f, 1f) };
+        [SerializeField] private Color[] _healBurstColors = { new Color(0.44f, 1f, 0.66f, 1f), Color.white };
+
+        [Header("피해 연출 세기 (프로토타입 값)")]
+        [SerializeField] private string _damageFormat = "-{0}";
+        [SerializeField] private string _healFormat = "+{0} HP";
+        [SerializeField] private string _shieldAddedFormat = "실드 +{0}";
+        [SerializeField] private string _shieldAbsorbedFormat = "실드 -{0}";
+        [SerializeField] private float _heavyHitRatio = 0.12f;
+        [SerializeField] private Vector2 _shakePowerRange = new Vector2(0.6f, 2.6f);
+        [SerializeField] private float _shakePowerBase = 0.6f;
+        [SerializeField] private float _shakePowerPerRatio = 5f;
+        [SerializeField] private float _lightFlashOpacity = 0.3f;
+        [SerializeField] private float _heavyFlashOpacity = 0.5f;
+        [SerializeField] private float _lightFlashDuration = 0.2f;
+        [SerializeField] private float _heavyFlashDuration = 0.32f;
+        [SerializeField] private float _ringBaseSize = 480f;
+        [SerializeField] private float _ringSizePerRatio = 800f;
+        [SerializeField] private float _ringDuration = 0.52f;
+        [SerializeField] private int _burstBaseCount = 20;
+        [SerializeField] private int _burstCountPerRatio = 120;
+        [SerializeField] private int _burstMaxCount = 140;
+        [SerializeField] private float _burstBaseSpeed = 200f;
+        [SerializeField] private float _burstSpeedPerRatio = 500f;
+        [SerializeField] private float _punchBase = 0.015f;
+        [SerializeField] private float _punchPerRatio = 0.1f;
+        [SerializeField] private float _punchMax = 0.06f;
+        [SerializeField] private int _damageFontSize = 52;
+        [SerializeField] private int _heavyDamageFontSize = 76;
+        [SerializeField] private int _supportFontSize = 40;
+        [SerializeField] private int _healBurstCount = 12;
+        [SerializeField] private float _healBurstSpeed = 110f;
+        [SerializeField] private float _shieldRingSize = 300f;
+        [SerializeField] private float _shieldRingDuration = 0.5f;
+
+        [Header("정산 연출 순서와 시간")]
+        [SerializeField] private float _bannerGap = 1.15f;
+        [SerializeField] private float _collisionDelay = 0.25f;
+        [SerializeField] private float _streamDuration = 0.4f;
+        [SerializeField] private int _streamCount = 30;
+        [SerializeField] private int _tierConfettiThreshold = 3;
+        [SerializeField] private int _tierConfettiCount = 60;
+        [SerializeField] private int _topTierConfettiCount = 160;
+        [SerializeField] private int _topTierSecondConfettiCount = 100;
+        [SerializeField] private float _topTierSecondConfettiDelay = 0.7f;
+        [SerializeField] private string _handBannerSubFormat = "{0} · 기본 {1}점";
+        [SerializeField] private string _critText = "CRITICAL!";
+        [SerializeField] private string _critSubFormat = "{0} 점수 → {1}";
+        [SerializeField] private Color _critColor = new Color(1f, 0.35f, 0.24f, 1f);
+        [SerializeField] private Color _critFlashColor = new Color(1f, 0.88f, 0.54f, 1f);
+        [SerializeField] private string _playerLabel = "나";
+        [SerializeField] private string _enemyLabel = "상대";
+        [SerializeField] private string _drawText = "DRAW";
+        [SerializeField] private string _drawSub = "점수가 같아 피해 없음";
+        [SerializeField] private Color _drawColor = new Color(0.55f, 0.6f, 0.6f, 1f);
+        [SerializeField] private Color _playerStreamColor = new Color(0.55f, 0.72f, 1f, 1f);
+        [SerializeField] private Color _enemyStreamColor = new Color(1f, 0.6f, 0.52f, 1f);
+        [SerializeField] private float _collisionRingSize = 760f;
+        [SerializeField] private float _collisionRingDuration = 0.5f;
+        [SerializeField] private int _collisionBurstCount = 36;
+        [SerializeField] private float _collisionBurstSpeed = 360f;
+        [SerializeField] private float _collisionShakePower = 0.7f;
+        [SerializeField] private float _collisionFlashOpacity = 0.55f;
+        [SerializeField] private float _collisionFlashDuration = 0.2f;
+        [SerializeField] private float _critShakePower = 0.8f;
+        [SerializeField] private float _critFlashOpacity = 0.5f;
+        [SerializeField] private float _critFlashDuration = 0.25f;
+        [SerializeField] private float _bigHitRatio = 0.2f;
+        [SerializeField] private float _devastatingRatio = 0.35f;
+        [SerializeField] private float _bigHitBannerDelay = 0.45f;
+        [SerializeField] private string _bigHitText = "BIG HIT!";
+        [SerializeField] private string _devastatingText = "DEVASTATING!";
+        [SerializeField] private string _damageSubFormat = "{0} 피해";
+        [SerializeField] private Color _bigHitColor = new Color(1f, 0.35f, 0.24f, 1f);
+
+        [Header("효과 카드 연출")]
+        [SerializeField] private UiFxCutIn _cutIn;
+        [SerializeField] private EffectHandView _handView;
+        [SerializeField] private EnemyEffectView _enemyView;
+        [SerializeField] private Color _attackColor = new Color(1f, 0.35f, 0.24f, 1f);
+        [SerializeField] private Color _disruptColor = new Color(0.49f, 0.3f, 0.77f, 1f);
+        [SerializeField] private Color _supportColor = new Color(0.16f, 0.42f, 0.74f, 1f);
+        [SerializeField] private Color _wildColor = new Color(0.9f, 0.64f, 0.24f, 1f);
+        [SerializeField] private Color _otherColor = new Color(0.18f, 0.64f, 0.42f, 1f);
+        [SerializeField] private Color _epicColor = new Color(0.49f, 0.3f, 0.77f, 1f);
+        [SerializeField] private Color _legendColor = new Color(0.9f, 0.64f, 0.24f, 1f);
+        [SerializeField] private Color _rivalColor = new Color(1f, 0.35f, 0.24f, 1f);
+        [SerializeField] private string _epicSkillText = "◆ EPIC SKILL";
+        [SerializeField] private string _legendSkillText = "★ LEGENDARY SKILL";
+        [SerializeField] private string _rivalEpicText = "◆ RIVAL EPIC";
+        [SerializeField] private string _rivalLegendText = "★ RIVAL LEGENDARY";
+        [SerializeField] private float _epicCutInDuration = 1.25f;
+        [SerializeField] private float _legendCutInDuration = 1.7f;
+        [SerializeField] private float _shortCutInDuration = 0.7f;
+        [SerializeField] private float _cutInFlashAt = 0.16f;
+        [SerializeField] private float _cutInRingAt = 0.2f;
+        [SerializeField] private float _activationAt = 0.88f;
+        [SerializeField] private float _epicCutInShake = 0.8f;
+        [SerializeField] private float _legendCutInShake = 1.3f;
+        [SerializeField] private float _epicCutInFlashOpacity = 0.4f;
+        [SerializeField] private float _legendCutInFlashOpacity = 0.6f;
+        [SerializeField] private float _cutInFlashDuration = 0.3f;
+        [SerializeField] private float _cutInRingSize = 900f;
+        [SerializeField] private float _cutInRingDuration = 0.7f;
+        [SerializeField] private int _cutInBurstCount = 50;
+        [SerializeField] private float _cutInBurstSpeed = 420f;
+        [SerializeField] private string _activatedText = "효과 발동!";
+        [SerializeField] private string _enemyActivatedFormat = "{0}!";
+        [SerializeField] private float _activationFlashOpacity = 0.28f;
+        [SerializeField] private float _activationFlashDuration = 0.26f;
+        [SerializeField] private float _activationRingSize = 420f;
+        [SerializeField] private float _activationRingDuration = 0.65f;
+        [SerializeField] private float _activationInnerRingSize = 260f;
+        [SerializeField] private float _activationInnerRingDuration = 0.5f;
+        [SerializeField] private float _activationPunch = 1.02f;
+        [SerializeField] private int _activationBurstCount = 34;
+        [SerializeField] private float _activationBurstSpeed = 200f;
+        [SerializeField] private int _activationFontSize = 56;
+        [SerializeField] private float _slotRingSize = 220f;
+        [SerializeField] private float _slotRingDuration = 0.45f;
+        [SerializeField] private int _slotPopupFontSize = 36;
+        [SerializeField] private string _epicGetText = "EPIC!";
+        [SerializeField] private string _legendGetText = "LEGENDARY!";
+        [SerializeField] private string _getSubFormat = "{0} 획득";
+        [SerializeField] private float _getFlashOpacity = 0.7f;
+        [SerializeField] private float _getFlashDuration = 0.45f;
+        [SerializeField] private float _epicGetShake = 0.7f;
+        [SerializeField] private float _legendGetShake = 1.2f;
+        [SerializeField] private float _getRingSize = 1000f;
+        [SerializeField] private float _getRingDuration = 0.9f;
+        [SerializeField] private float _getInnerRingSize = 700f;
+        [SerializeField] private float _getInnerRingDuration = 0.7f;
+        [SerializeField] private float _getInnerRingDelay = 0.15f;
+        [SerializeField] private int _epicGetBurstCount = 50;
+        [SerializeField] private int _legendGetBurstCount = 90;
+        [SerializeField] private float _getBurstSpeed = 460f;
+        [SerializeField] private int _legendGetConfettiCount = 200;
+        [SerializeField] private int _legendGetSecondConfettiCount = 100;
+        [SerializeField] private float _legendGetSecondConfettiDelay = 0.7f;
+
+        [Header("획득 화면 (프로토타입의 가운데 카드)")]
+        [SerializeField] private UiFxGetCard _getCard;
+        [SerializeField] private int _getCardActiveRounds = 3;
+
+        [Header("배경 문양")]
+        [SerializeField] private UiFxBackground _background;
+        [SerializeField] private float _roundPulse = 0.6f;
+        [SerializeField] private float _hitPulse = 0.5f;
+        [SerializeField] private float _activationPulse = 0.8f;
+
+        [Header("전투 종료 연출")]
+        [SerializeField] private float _endDelay = 0.6f;
+        [SerializeField] private string _victoryText = "VICTORY";
+        [SerializeField] private string _victorySub = "승리!";
+        [SerializeField] private string _defeatText = "DEFEAT";
+        [SerializeField] private string _defeatSub = "패배...";
+        [SerializeField] private string _endDrawText = "DRAW";
+        [SerializeField] private string _endDrawSub = "무승부";
+        [SerializeField] private Color _victoryColor = new Color(1f, 0.82f, 0.25f, 1f);
+        [SerializeField] private Color _defeatColor = new Color(1f, 0.2f, 0.2f, 1f);
+        [SerializeField] private float _victoryFlashOpacity = 0.7f;
+        [SerializeField] private float _victoryFlashDuration = 0.5f;
+        [SerializeField] private float _victoryRingSize = 1100f;
+        [SerializeField] private float _victoryRingDuration = 0.9f;
+        [SerializeField] private int _victoryBurstCount = 90;
+        [SerializeField] private float _victoryBurstSpeed = 420f;
+        [SerializeField] private int _victoryConfettiCount = 220;
+        [SerializeField] private int _victorySecondConfettiCount = 120;
+        [SerializeField] private float _victorySecondConfettiDelay = 0.8f;
+        [SerializeField] private float _defeatFlashOpacity = 0.75f;
+        [SerializeField] private float _defeatFlashDuration = 0.7f;
+        [SerializeField] private float _defeatShake = 1.6f;
+        [SerializeField] private int _crackCount = 9;
+        [SerializeField] private float _crackLength = 520f;
+        [SerializeField] private float _crackThickness = 5f;
+        [SerializeField] private float _crackLife = 2.4f;
+
+        [Header("드래프트 카드 공개 연출")]
+        [SerializeField] private EffectDraftView _draftView;
+        [SerializeField] private Color _legendRevealFlashColor = new Color(1f, 0.96f, 0.78f, 1f);
+        [SerializeField] private Color _epicRevealFlashColor = new Color(0.91f, 0.82f, 1f, 1f);
+        [SerializeField] private float _legendRevealFlashOpacity = 0.55f;
+        [SerializeField] private float _epicRevealFlashOpacity = 0.35f;
+        [SerializeField] private float _legendRevealFlashDuration = 0.35f;
+        [SerializeField] private float _epicRevealFlashDuration = 0.28f;
+        [SerializeField] private float _legendRevealRingSize = 440f;
+        [SerializeField] private float _epicRevealRingSize = 330f;
+        [SerializeField] private float _legendRevealRingDuration = 0.65f;
+        [SerializeField] private float _epicRevealRingDuration = 0.55f;
+        [SerializeField] private int _legendRevealBurstCount = 44;
+        [SerializeField] private int _epicRevealBurstCount = 28;
+        [SerializeField] private float _legendRevealBurstSpeed = 230f;
+        [SerializeField] private float _epicRevealBurstSpeed = 170f;
+        [SerializeField] private float _legendRevealShake = 0.8f;
+
+        [SerializeField]
+        private List<HandFx> _handFx = new List<HandFx>
+        {
+            new HandFx(HandRank.HighCard, "HIGH CARD", new Color(0.62f, 0.8f, 0.72f, 1f), 0),
+            new HandFx(HandRank.OnePair, "ONE PAIR", new Color(0.62f, 0.8f, 0.72f, 1f), 0),
+            new HandFx(HandRank.TwoPair, "TWO PAIR", new Color(0.16f, 0.42f, 0.74f, 1f), 1),
+            new HandFx(HandRank.ThreeOfAKind, "THREE OF A KIND", new Color(0.18f, 0.64f, 0.42f, 1f), 1),
+            new HandFx(HandRank.Straight, "STRAIGHT", new Color(0.9f, 0.64f, 0.24f, 1f), 2),
+            new HandFx(HandRank.Flush, "FLUSH", new Color(0.9f, 0.64f, 0.24f, 1f), 2),
+            new HandFx(HandRank.FullHouse, "FULL HOUSE", new Color(0.49f, 0.3f, 0.77f, 1f), 2),
+            new HandFx(HandRank.FourOfAKind, "FOUR OF A KIND", new Color(1f, 0.35f, 0.24f, 1f), 3),
+            new HandFx(HandRank.StraightFlush, "STRAIGHT FLUSH", new Color(1f, 0.35f, 0.24f, 1f), 3),
+            new HandFx(HandRank.RoyalStraightFlush, "ROYAL FLUSH", Color.white, 4)
+        };
+
+        private readonly List<TimedAction> _timeline = new List<TimedAction>();
+        private readonly List<Action> _due = new List<Action>();
+
+        // 같은 카드의 컷인은 한 판에서 두 번째부터 짧게 보여 준다(프로토타입 규칙). 새 전투가 시작되면 비운다.
+        private readonly HashSet<(bool, EffectCardData)> _cutInSeen = new HashSet<(bool, EffectCardData)>();
+
+        // 컷인이 겹쳐 덮어써지지 않도록, 앞 컷인이 끝나기까지 남은 시간을 센다.
+        private float _cutInBusyFor;
+        private SideWatcher _playerWatcher;
+        private SideWatcher _enemyWatcher;
+        private EffectBattleCoordinator _coordinator;
+        private float _clock;
+
+        // 정산 중 일어나는 피해 연출을 이 시간만큼 미룬다. 점수 연출이 끝난 뒤에 맞는 모습이 나오게 하려는 것이다.
+        private float _hitDelay;
+        private bool _started;
+
+        // 상태 객체가 BattleController.Awake에서 만들어지므로, 모든 Awake가 끝난 Start에서 연결한다.
+        private void Start()
+        {
+            var state = _controller.State;
+            _playerWatcher = new SideWatcher(this, state.Player, true);
+            _enemyWatcher = new SideWatcher(this, state.Enemy, false);
+            _coordinator = _controller.Coordinator;
+            _started = true;
+            Subscribe();
+
+            // 컨트롤러가 먼저 Start해 첫 라운드 알림이 이미 지나갔다면 지금 라운드를 직접 보여 준다.
+            if (_controller.Round > 0)
+            {
+                PlayRoundBanner(_controller.Round);
+            }
+        }
+
+        private void OnEnable()
+        {
+            if (_started)
+            {
+                Subscribe();
+            }
+        }
+
+        private void OnDisable()
+        {
+            Unsubscribe();
+        }
+
+        private void Update()
+        {
+            Tick(Time.deltaTime);
+        }
+
+        public void Tick(float dt)
+        {
+            _cutInBusyFor = Mathf.Max(0f, _cutInBusyFor - dt);
+
+            if (_timeline.Count == 0)
+            {
+                return;
+            }
+
+            _clock += dt;
+
+            // 실행 중에 새 예약이 생길 수 있어서, 시간이 된 것을 먼저 모아 지우고 나서 실행한다.
+            _due.Clear();
+            for (int i = _timeline.Count - 1; i >= 0; i--)
+            {
+                if (_timeline[i].Time <= _clock)
+                {
+                    _due.Add(_timeline[i].Action);
+                    _timeline.RemoveAt(i);
+                }
+            }
+
+            for (int i = _due.Count - 1; i >= 0; i--)
+            {
+                _due[i]();
+            }
+
+            if (_timeline.Count == 0)
+            {
+                _clock = 0f;
+            }
+        }
+
+        private void Subscribe()
+        {
+            _controller.RoundStarted -= OnRoundStarted;
+            _controller.RoundStarted += OnRoundStarted;
+            _controller.BattleEnded -= OnBattleEnded;
+            _controller.BattleEnded += OnBattleEnded;
+            _playerWatcher.Subscribe();
+            _enemyWatcher.Subscribe();
+
+            if (_coordinator != null)
+            {
+                _coordinator.ScoresResolved -= OnScoresResolved;
+                _coordinator.ScoresResolved += OnScoresResolved;
+                _coordinator.Settled -= OnSettled;
+                _coordinator.Settled += OnSettled;
+                _coordinator.Logged -= OnLogged;
+                _coordinator.Logged += OnLogged;
+            }
+
+            if (_draftView != null)
+            {
+                _draftView.CardRevealed -= OnCardRevealed;
+                _draftView.CardRevealed += OnCardRevealed;
+            }
+        }
+
+        private void Unsubscribe()
+        {
+            if (!_started)
+            {
+                return;
+            }
+
+            _controller.RoundStarted -= OnRoundStarted;
+            _controller.BattleEnded -= OnBattleEnded;
+            _playerWatcher.Unsubscribe();
+            _enemyWatcher.Unsubscribe();
+
+            if (_coordinator != null)
+            {
+                _coordinator.ScoresResolved -= OnScoresResolved;
+                _coordinator.Settled -= OnSettled;
+                _coordinator.Logged -= OnLogged;
+            }
+
+            if (_draftView != null)
+            {
+                _draftView.CardRevealed -= OnCardRevealed;
+            }
+        }
+
+        private void Schedule(float delay, Action action)
+        {
+            if (delay <= 0f)
+            {
+                action();
+                return;
+            }
+
+            _timeline.Add(new TimedAction(_clock + delay, action));
+        }
+
+        // 다음 라운드가 시작되면 앞 라운드의 남은 연출은 의미가 없으므로 버린다.
+        private void OnRoundStarted(int round)
+        {
+            _timeline.Clear();
+            _clock = 0f;
+            _hitDelay = 0f;
+            _cutInBusyFor = 0f;
+            PlayRoundBanner(round);
+        }
+
+        // 마지막 피해 연출이 끝난 뒤에 승패 연출이 나오도록 피해 지연 뒤로 미룬다.
+        private void OnBattleEnded(BattleWinner winner, int round)
+        {
+            Schedule(_hitDelay + _endDelay, () => PlayBattleEnd(winner));
+        }
+
+        private void PlayBattleEnd(BattleWinner winner)
+        {
+            if (winner == BattleWinner.Player)
+            {
+                _fx.Flash(_victoryColor, _victoryFlashOpacity, _victoryFlashDuration);
+                _spawner.Ring(Vector2.zero, _victoryColor, _victoryRingSize, _victoryRingDuration);
+                _spawner.Burst(Vector2.zero, _hitBurstColors, _victoryBurstCount, _victoryBurstSpeed);
+                _spawner.Confetti(_victoryConfettiCount);
+                Schedule(_victorySecondConfettiDelay, () => _spawner.Confetti(_victorySecondConfettiCount));
+                _fx.ShowBanner(_victoryText, _victorySub, _victoryColor, true);
+            }
+            else if (winner == BattleWinner.Enemy)
+            {
+                _fx.Flash(_defeatColor, _defeatFlashOpacity, _defeatFlashDuration);
+                _fx.Shake(_defeatShake);
+                for (int i = 0; i < _crackCount; i++)
+                {
+                    float angle = (360f / _crackCount) * i + UnityEngine.Random.Range(-12f, 12f);
+                    var dir = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad));
+                    float length = _crackLength * UnityEngine.Random.Range(0.6f, 1f);
+                    _spawner.Segment(dir * 40f, dir * length, _defeatColor, _crackThickness, _crackLife);
+                }
+
+                _fx.ShowBanner(_defeatText, _defeatSub, _defeatColor, false);
+            }
+            else
+            {
+                _fx.ShowBanner(_endDrawText, _endDrawSub, _drawColor, false);
+            }
+        }
+
+        private void PlayRoundBanner(int round)
+        {
+            Pulse(_roundPulse);
+            bool first = round == 1;
+            _fx.ShowBanner(string.Format(_roundFormat, round), first ? _firstRoundSub : _nextRoundSub,
+                first ? _firstRoundColor : _nextRoundColor, false);
+        }
+
+        // 정산 연출: 족보 배너 → 치명타 → 충돌 → 광선(또는 무승부). 마지막에 피해 연출이 이어지도록 지연 시간을 정한다.
+        private void OnScoresResolved(EffectBattleCoordinator.SettlePreview preview)
+        {
+            // 정산 직전에 상대 액티브 컷인이 돌고 있다면 그것이 끝난 뒤에 점수 연출을 시작한다.
+            float time = _cutInBusyFor;
+
+            var handFx = FindHandFx(preview.PlayerHand.HandRank);
+            if (handFx != null && handFx.Tier >= 1)
+            {
+                Schedule(time, () => PlayHandBanner(handFx, preview.PlayerHand));
+                time += _bannerGap;
+            }
+
+            if (preview.PlayerCrit)
+            {
+                Schedule(time, () => PlayCrit(true, preview.PlayerScore));
+                time += _bannerGap;
+            }
+
+            if (preview.EnemyCrit)
+            {
+                Schedule(time, () => PlayCrit(false, preview.EnemyScore));
+                time += _bannerGap;
+            }
+
+            time += _collisionDelay;
+            Schedule(time, PlayCollision);
+
+            if (preview.Winner == BattleWinner.Draw)
+            {
+                Schedule(time + _collisionDelay, PlayDraw);
+                time += _bannerGap;
+            }
+            else
+            {
+                bool playerWon = preview.Winner == BattleWinner.Player;
+                Schedule(time + _collisionDelay, () => PlayStream(playerWon));
+                time += _collisionDelay + _streamDuration;
+            }
+
+            _hitDelay = time;
+        }
+
+        // 정산이 끝나면(피해 적용까지 마친 뒤) 지연을 풀어서, 이후 사건은 바로 연출한다.
+        private void OnSettled(EffectBattleCoordinator.SettleResult result)
+        {
+            _hitDelay = 0f;
+        }
+
+        private HandFx FindHandFx(HandRank rank)
+        {
+            foreach (var entry in _handFx)
+            {
+                if (entry.HandRank == rank)
+                {
+                    return entry;
+                }
+            }
+
+            return null;
+        }
+
+        private void PlayHandBanner(HandFx handFx, PokerHandResult hand)
+        {
+            bool topTier = handFx.Tier >= 4;
+            _fx.ShowBanner(handFx.EnglishName, string.Format(_handBannerSubFormat, hand.Name, hand.Score), handFx.Color, topTier);
+
+            if (handFx.Tier >= _tierConfettiThreshold)
+            {
+                _spawner.Confetti(topTier ? _topTierConfettiCount : _tierConfettiCount);
+                if (topTier)
+                {
+                    Schedule(_topTierSecondConfettiDelay, () => _spawner.Confetti(_topTierSecondConfettiCount));
+                }
+            }
+        }
+
+        private void PlayCrit(bool isPlayer, int score)
+        {
+            _fx.Flash(_critFlashColor, _critFlashOpacity, _critFlashDuration);
+            _fx.Shake(_critShakePower);
+            _fx.ShowBanner(_critText, string.Format(_critSubFormat, isPlayer ? _playerLabel : _enemyLabel, score), _critColor, false);
+            _spawner.Ring(_spawner.ToLocal(isPlayer ? _playerHud : _enemyHud), _critFlashColor, _collisionRingSize, _collisionRingDuration);
+        }
+
+        private void Pulse(float amount)
+        {
+            if (_background != null)
+            {
+                _background.Pulse(amount);
+            }
+        }
+
+        private void PlayCollision()
+        {
+            Pulse(_hitPulse);
+            Vector2 center = _spawner.ToLocal(_eventBox);
+            _fx.Flash(Color.white, _collisionFlashOpacity, _collisionFlashDuration);
+            _fx.Shake(_collisionShakePower);
+            _spawner.Ring(center, Color.white, _collisionRingSize, _collisionRingDuration);
+            _spawner.Burst(center, _hitBurstColors, _collisionBurstCount, _collisionBurstSpeed);
+        }
+
+        private void PlayDraw()
+        {
+            _fx.ShowBanner(_drawText, _drawSub, _drawColor, false);
+        }
+
+        private void PlayStream(bool playerWon)
+        {
+            Vector2 from = _spawner.ToLocal(playerWon ? _playerHud : _enemyHud);
+            Vector2 to = _spawner.ToLocal(playerWon ? _enemyHud : _playerHud);
+            _spawner.Stream(from, to, playerWon ? _playerStreamColor : _enemyStreamColor, _streamCount, _streamDuration);
+        }
+
+        // 피해는 사건이 일어난 순간의 HP 비율을 기억해 두었다가, 정산 연출이 끝난 뒤에 보여 준다.
+        private void OnHpLost(bool isPlayer, CombatantState state, int amount)
+        {
+            float afterPercent = Mathf.Clamp(state.Hp * 100f / state.MaxHp, 0f, 100f);
+            float beforePercent = Mathf.Clamp((state.Hp + amount) * 100f / state.MaxHp, 0f, 100f);
+            int maxHp = state.MaxHp;
+            Schedule(_hitDelay, () => PlayHpLost(isPlayer, amount, maxHp, beforePercent, afterPercent));
+        }
+
+        private void PlayHpLost(bool isPlayer, int amount, int maxHp, float beforePercent, float afterPercent)
+        {
+            Pulse(_hitPulse);
+            float ratio = amount / (float)maxHp;
+            bool heavy = ratio >= _heavyHitRatio;
+            var hud = isPlayer ? _playerHud : _enemyHud;
+            Vector2 position = _spawner.ToLocal(hud);
+            float power = Mathf.Clamp(_shakePowerBase + ratio * _shakePowerPerRatio, _shakePowerRange.x, _shakePowerRange.y);
+
+            _spawner.Popup(position, string.Format(_damageFormat, amount), isPlayer ? _playerHitColor : _enemyHitColor,
+                heavy ? _heavyDamageFontSize : _damageFontSize);
+            _spawner.Ring(position, isPlayer ? _playerHitColor : _enemyHitColor, _ringBaseSize + ratio * _ringSizePerRatio, _ringDuration);
+            _spawner.Burst(position, _hitBurstColors,
+                Mathf.Min(_burstMaxCount, _burstBaseCount + Mathf.RoundToInt(ratio * _burstCountPerRatio)),
+                _burstBaseSpeed + ratio * _burstSpeedPerRatio);
+
+            _fx.Shake(power);
+            _fx.Punch(1f + Mathf.Min(_punchMax, _punchBase + ratio * _punchPerRatio));
+            _fx.Flash(isPlayer ? _playerFlashColor : _enemyFlashColor,
+                heavy ? _heavyFlashOpacity : _lightFlashOpacity,
+                heavy ? _heavyFlashDuration : _lightFlashDuration);
+            _spawner.Chunks(isPlayer ? _playerBar : _enemyBar, beforePercent, afterPercent,
+                isPlayer ? _playerChunkColor : _enemyChunkColor);
+
+            if (ratio >= _bigHitRatio)
+            {
+                bool devastating = ratio >= _devastatingRatio;
+                Schedule(_bigHitBannerDelay, () => _fx.ShowBanner(devastating ? _devastatingText : _bigHitText,
+                    string.Format(_damageSubFormat, amount), _bigHitColor, false));
+            }
+        }
+
+        private void OnLogged(EffectLogEntry entry)
+        {
+            switch (entry.Kind)
+            {
+                case EffectLogKind.BattleStarted:
+                    _cutInSeen.Clear();
+                    break;
+                case EffectLogKind.ActiveUsed:
+                    PlayActiveUsed(entry.IsPlayer, entry.Card);
+                    break;
+                case EffectLogKind.Drafted:
+                    // 상대가 무엇을 골랐는지는 숨기므로 내가 영웅·전설을 얻었을 때만 축하한다.
+                    if (entry.IsPlayer && entry.Card.Grade >= EffectGrade.Epic)
+                    {
+                        PlayRarityGet(entry.Card);
+                    }
+
+                    break;
+            }
+        }
+
+        // 영웅·전설은 컷인이 먼저 지나가고, 그 뒤에 발동 연출이 터진다. 일반·희귀는 바로 발동한다.
+        private void PlayActiveUsed(bool isPlayer, EffectCardData card)
+        {
+            float activationDelay = 0f;
+            if (card.Grade >= EffectGrade.Epic)
+            {
+                activationDelay = ScheduleCutIn(isPlayer, card);
+            }
+
+            Schedule(activationDelay, () => PlayActivation(isPlayer, card));
+        }
+
+        // 컷인을 줄 세워 예약하고, 발동 연출을 시작할 시각을 돌려준다.
+        private float ScheduleCutIn(bool isPlayer, EffectCardData card)
+        {
+            bool legend = card.Grade == EffectGrade.Legend;
+
+            // 같은 카드를 이미 보여 줬다면 짧게 지나간다.
+            bool seen = !_cutInSeen.Add((isPlayer, card));
+            float duration = seen ? _shortCutInDuration : legend ? _legendCutInDuration : _epicCutInDuration;
+            float start = _cutInBusyFor;
+            _cutInBusyFor += duration;
+
+            Color color = isPlayer ? (legend ? _legendColor : _epicColor) : _rivalColor;
+            string grade = isPlayer
+                ? (legend ? _legendSkillText : _epicSkillText)
+                : (legend ? _rivalLegendText : _rivalEpicText);
+            Color accent = legend ? _legendColor : _epicColor;
+
+            // 컷인 오브젝트가 씬에 없어도 나머지 연출과 게임 진행은 멈추지 않게 한다.
+            if (_cutIn != null)
+            {
+                Schedule(start, () => _cutIn.Show(grade, card.DisplayName, card.Description, color, duration));
+            }
+
+            Schedule(start + duration * _cutInFlashAt, () =>
+            {
+                _fx.Flash(accent, legend ? _legendCutInFlashOpacity : _epicCutInFlashOpacity, _cutInFlashDuration);
+                _fx.Shake(legend ? _legendCutInShake : _epicCutInShake);
+            });
+
+            if (legend)
+            {
+                Schedule(start + duration * _cutInRingAt, () =>
+                {
+                    _spawner.Ring(Vector2.zero, _legendColor, _cutInRingSize, _cutInRingDuration);
+                    _spawner.Burst(Vector2.zero, new[] { _legendColor, Color.white, _rivalColor }, _cutInBurstCount, _cutInBurstSpeed);
+                });
+            }
+
+            return start + duration * _activationAt;
+        }
+
+        // 액티브가 발동하는 순간: 이벤트 상자 가운데에서 분류 색 번쩍임·링·파편이 터지고, 카드 자리에도 반응이 간다.
+        private void PlayActivation(bool isPlayer, EffectCardData card)
+        {
+            Pulse(_activationPulse);
+            Color color = GetCategoryColor(card);
+            Vector2 center = _spawner.ToLocal(_eventBox);
+
+            _fx.Flash(color, _activationFlashOpacity, _activationFlashDuration);
+            _fx.Punch(_activationPunch);
+            _spawner.Ring(center, color, _activationRingSize, _activationRingDuration);
+            _spawner.Ring(center, Color.white, _activationInnerRingSize, _activationInnerRingDuration);
+            _spawner.Burst(center, new[] { _enemyHitColor, Color.white, color }, _activationBurstCount, _activationBurstSpeed);
+            _spawner.Popup(center, _activatedText, color, _activationFontSize);
+
+            RectTransform slot = null;
+            if (isPlayer && _handView != null)
+            {
+                slot = _handView.GetSlotRect(card);
+            }
+            else if (!isPlayer && _enemyView != null)
+            {
+                slot = _enemyView.GetSlotRect(card);
+            }
+
+            if (slot != null)
+            {
+                Vector2 position = _spawner.ToLocal(slot);
+                _spawner.Ring(position, color, _slotRingSize, _slotRingDuration);
+                if (!isPlayer)
+                {
+                    _spawner.Popup(position, string.Format(_enemyActivatedFormat, card.DisplayName), color, _slotPopupFontSize);
+                }
+            }
+        }
+
+        private Color GetCategoryColor(EffectCardData card)
+        {
+            var category = card.Category;
+            if (category.HasFlag(EffectCategory.Attack))
+            {
+                return _attackColor;
+            }
+
+            if (category.HasFlag(EffectCategory.Disrupt))
+            {
+                return _disruptColor;
+            }
+
+            if (category.HasFlag(EffectCategory.Defense) || category.HasFlag(EffectCategory.Utility))
+            {
+                return _supportColor;
+            }
+
+            return category.HasFlag(EffectCategory.Wild) ? _wildColor : _otherColor;
+        }
+
+        // 영웅·전설을 얻었을 때의 축하: 번쩍임, 흔들림, 겹친 링, 파편, 전설은 색종이까지.
+        private void PlayRarityGet(EffectCardData card)
+        {
+            bool legend = card.Grade == EffectGrade.Legend;
+            Color accent = legend ? _legendColor : _epicColor;
+
+            _fx.Flash(accent, _getFlashOpacity, _getFlashDuration);
+            _fx.Shake(legend ? _legendGetShake : _epicGetShake);
+            _spawner.Ring(Vector2.zero, accent, _getRingSize, _getRingDuration);
+            Schedule(_getInnerRingDelay, () => _spawner.Ring(Vector2.zero, Color.white, _getInnerRingSize, _getInnerRingDuration));
+            _spawner.Burst(Vector2.zero, new[] { accent, Color.white, _enemyHitColor }, legend ? _legendGetBurstCount : _epicGetBurstCount, _getBurstSpeed);
+
+            if (legend)
+            {
+                _spawner.Confetti(_legendGetConfettiCount);
+                Schedule(_legendGetSecondConfettiDelay, () => _spawner.Confetti(_legendGetSecondConfettiCount));
+            }
+
+            // 카드가 가운데에 뒤집히며 뜨는 것이 프로토타입 획득 화면의 중심이다. 오브젝트가 없으면 나머지만 보여 준다.
+            if (_getCard != null)
+            {
+                _getCard.Show(card, _coordinator != null ? _coordinator.ActiveUsableRounds : _getCardActiveRounds);
+            }
+
+            _fx.ShowBanner(legend ? _legendGetText : _epicGetText, string.Format(_getSubFormat, card.DisplayName), accent, legend);
+        }
+
+        // 드래프트 카드가 공개되는 순간 그 자리에서 터진다. 일반·희귀는 조용히 넘어가고 영웅·전설만 연출한다.
+        private void OnCardRevealed(RectTransform slot, EffectCardData card)
+        {
+            if (card.Grade < EffectGrade.Epic)
+            {
+                return;
+            }
+
+            bool legend = card.Grade == EffectGrade.Legend;
+            Color accent = legend ? _legendColor : _epicColor;
+            Vector2 position = _spawner.ToLocal(slot);
+
+            _fx.Flash(legend ? _legendRevealFlashColor : _epicRevealFlashColor,
+                legend ? _legendRevealFlashOpacity : _epicRevealFlashOpacity,
+                legend ? _legendRevealFlashDuration : _epicRevealFlashDuration);
+            _spawner.Ring(position, accent, legend ? _legendRevealRingSize : _epicRevealRingSize,
+                legend ? _legendRevealRingDuration : _epicRevealRingDuration);
+            _spawner.Burst(position, new[] { accent, Color.white, _legendRevealFlashColor },
+                legend ? _legendRevealBurstCount : _epicRevealBurstCount,
+                legend ? _legendRevealBurstSpeed : _epicRevealBurstSpeed);
+
+            if (legend)
+            {
+                _fx.Shake(_legendRevealShake);
+            }
+        }
+
+        private void PlayHealed(bool isPlayer, int amount)
+        {
+            Vector2 position = _spawner.ToLocal(isPlayer ? _playerHud : _enemyHud);
+            _spawner.Popup(position, string.Format(_healFormat, amount), _healColor, _supportFontSize);
+            _spawner.Burst(position, _healBurstColors, _healBurstCount, _healBurstSpeed);
+        }
+
+        private void PlayShield(bool isPlayer, int amount, string format)
+        {
+            Vector2 position = _spawner.ToLocal(isPlayer ? _playerHud : _enemyHud);
+            _spawner.Popup(position, string.Format(format, amount), _shieldColor, _supportFontSize);
+            _spawner.Ring(position, _shieldColor, _shieldRingSize, _shieldRingDuration);
+        }
+    }
+}

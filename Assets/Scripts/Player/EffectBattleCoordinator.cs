@@ -49,6 +49,30 @@ namespace Effect_Card
             }
         }
 
+        // 피해가 적용되기 전에 점수와 승패만 먼저 알린다. 연출이 "배너 → 충돌 → 피해" 순서로 이어 가는 데 쓴다.
+        public readonly struct SettlePreview
+        {
+            public int PlayerScore { get; }
+            public int EnemyScore { get; }
+            public bool PlayerCrit { get; }
+            public bool EnemyCrit { get; }
+            public PokerHandResult PlayerHand { get; }
+            public PokerHandResult EnemyHand { get; }
+            public BattleWinner Winner { get; }
+
+            public SettlePreview(int playerScore, int enemyScore, bool playerCrit, bool enemyCrit,
+                PokerHandResult playerHand, PokerHandResult enemyHand, BattleWinner winner)
+            {
+                PlayerScore = playerScore;
+                EnemyScore = enemyScore;
+                PlayerCrit = playerCrit;
+                EnemyCrit = enemyCrit;
+                PlayerHand = playerHand;
+                EnemyHand = enemyHand;
+                Winner = winner;
+            }
+        }
+
         private readonly BattleState _state;
         private readonly EffectCardDatabase _database;
         private readonly EffectRuleSet _ruleSet;
@@ -77,6 +101,9 @@ namespace Effect_Card
 
         // 정산 직후 한 번. 사용한 카드 목록은 다음 라운드에 비워지므로 이 시점의 값을 복사해 넘긴다.
         public event Action<SettleResult> Settled;
+
+        // 점수·승패가 정해진 직후, 피해가 적용되기 전에 한 번 알린다.
+        public event Action<SettlePreview> ScoresResolved;
 
         // 전투 로그용. 상태가 바뀐 그 순간의 사건을 한 줄 재료로 알린다.
         public event Action<EffectLogEntry> Logged;
@@ -185,6 +212,8 @@ namespace Effect_Card
             var winner = playerScore > enemyScore ? BattleWinner.Player
                 : enemyScore > playerScore ? BattleWinner.Enemy
                 : BattleWinner.Draw;
+
+            ScoresResolved?.Invoke(new SettlePreview(playerScore, enemyScore, playerCrit, enemyCrit, playerHand, enemyHand, winner));
 
             int totalDamage = 0;
             if (winner != BattleWinner.Draw)

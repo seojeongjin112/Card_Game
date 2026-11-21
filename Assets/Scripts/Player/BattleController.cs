@@ -43,6 +43,16 @@ namespace Poker_Card
         // 효과 카드 화면이 드래프트와 액티브 사용을 이어 가는 통로다. 효과를 끄면 null이다.
         public EffectBattleCoordinator Coordinator => _coordinator;
 
+        // 연출이 피해·회복 사건을 직접 받아 갈 수 있게 전투 상태를 읽기 전용으로 내보낸다.
+        public BattleState State => _state;
+        public int Round => _round;
+
+        // 라운드가 시작될 때마다 알린다. 늦게 켜진 쪽은 Round를 읽어 현재 라운드를 알 수 있다.
+        public event System.Action<int> RoundStarted;
+
+        // 전투가 끝났을 때(HP가 0이 되었을 때) 승자와 마지막 라운드 번호를 알린다. 무승부로 끝나면 Draw다.
+        public event System.Action<BattleWinner, int> BattleEnded;
+
         private void Awake()
         {
             _evaluator = new PokerHandEvaluator(_scoreTable);
@@ -170,6 +180,7 @@ namespace Poker_Card
             _round = 1;
             StartEffectRound();
             RefreshProgress();
+            RoundStarted?.Invoke(_round);
         }
 
         private void OnHandSubmitted(IReadOnlyList<PokerCardData> cards)
@@ -218,6 +229,11 @@ namespace Poker_Card
             _resultView.ShowRoundResult(outcome, enemyHand, _state.IsOver, _state.GetWinner());
             _coordinator?.EndRound();
             RefreshProgress();
+
+            if (_state.IsOver)
+            {
+                BattleEnded?.Invoke(_state.GetWinner(), _round);
+            }
         }
 
         private void OnNextClicked()
@@ -248,6 +264,7 @@ namespace Poker_Card
             _resultView.ShowRoundStart();
             StartEffectRound();
             RefreshProgress();
+            RoundStarted?.Invoke(_round);
         }
 
         // 단계는 따로 저장하지 않고 지금 상태에서 매번 계산해서, 호출 순서가 꼬여도 화면이 어긋나지 않게 한다.
@@ -295,6 +312,7 @@ namespace Poker_Card
                 _isSettled = true;
                 _handView.SetLocked(true);
                 _resultView.ShowRoundResult(new BattleOutcome(winner, 0), _enemy.Best.Result, true, winner);
+                BattleEnded?.Invoke(winner, _round);
             }
         }
 

@@ -41,6 +41,12 @@ namespace Effect_Card
 
         public event Action Changed;
 
+        // 연출용. Changed는 무엇이 바뀌었는지 모르므로, 피해·회복·실드의 크기를 사건 순간에 따로 알린다.
+        public event Action<int> HpLost;
+        public event Action<int> HpHealed;
+        public event Action<int> ShieldAdded;
+        public event Action<int> ShieldAbsorbed;
+
         public CombatantState(int maxHp)
         {
             MaxHp = maxHp;
@@ -52,6 +58,11 @@ namespace Effect_Card
             int healed = Mathf.Clamp(amount, 0, MaxHp - Hp);
             Hp += healed;
             Changed?.Invoke();
+            if (healed > 0)
+            {
+                HpHealed?.Invoke(healed);
+            }
+
             return healed;
         }
 
@@ -59,6 +70,10 @@ namespace Effect_Card
         {
             Shield += amount;
             Changed?.Invoke();
+            if (amount > 0)
+            {
+                ShieldAdded?.Invoke(amount);
+            }
         }
 
         public int AbsorbWithShield(int damage)
@@ -66,6 +81,11 @@ namespace Effect_Card
             int absorbed = Mathf.Min(Shield, damage);
             Shield -= absorbed;
             Changed?.Invoke();
+            if (absorbed > 0)
+            {
+                ShieldAbsorbed?.Invoke(absorbed);
+            }
+
             return absorbed;
         }
 
@@ -80,6 +100,10 @@ namespace Effect_Card
         {
             Hp -= damage;
             Changed?.Invoke();
+            if (damage > 0)
+            {
+                HpLost?.Invoke(damage);
+            }
         }
 
         public void SetImmune(bool value)
