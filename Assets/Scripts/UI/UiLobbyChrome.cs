@@ -19,8 +19,16 @@ namespace Poker_Card
         private static readonly Color GoldColor = new Color(1f, 0.82f, 0.25f, 1f);
         private static readonly Color GrayButton = new Color(0.247f, 0.298f, 0.278f, 1f);
 
-        public static string[] TabIds { get; } = { "home", "cards" };
-        public static string[] TabLabels { get; } = { "홈", "카드" };
+        public static string[] TabIds { get; } = { "home", "cards", "deck" };
+        public static string[] TabLabels { get; } = { "홈", "카드", "덱" };
+        private static readonly string[] TabScenes = { "Title", "Cards", "Deck" };
+
+        // 탭 번호에 해당하는 씬 이름. 모든 로비 화면이 같은 표를 쓰므로 한곳에 둔다.
+        public static string GetSceneName(string tabId)
+        {
+            int index = System.Array.IndexOf(TabIds, tabId);
+            return index >= 0 ? TabScenes[index] : null;
+        }
 
         // 왼쪽에 RUNE DUEL 로고와 화면 이름(있으면 금색), 오른쪽에 버튼 하나(있으면)를 둔 위쪽 줄을 만든다.
         public static void BuildTopBar(RectTransform stage, Font font, string logoWord, string logoSub, string pageLabel, string buttonLabel, UnityEngine.Events.UnityAction onButton)

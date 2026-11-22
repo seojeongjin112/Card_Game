@@ -25,7 +25,8 @@ namespace Poker_Card
             All,
             Active,
             Passive,
-            EpicPlus
+            EpicPlus,
+            MyDeck
         }
 
         private sealed class MiniCard
@@ -46,7 +47,6 @@ namespace Poker_Card
         [Header("데이터와 씬")]
         [SerializeField] private EffectCardDatabase _effectDatabase;
         [SerializeField] private EffectRuleSet _ruleSet;
-        [SerializeField] private string _homeSceneName = "Title";
 
         [Header("문구")]
         [SerializeField] private string _logoWord = "RUNE DUEL";
@@ -54,7 +54,7 @@ namespace Poker_Card
         [SerializeField] private string _pageLabel = "카드";
         [SerializeField] private string _searchPlaceholder = "카드 이름·효과 검색";
         [SerializeField] private string[] _sortNames = { "문양순", "등급순", "이름순" };
-        [SerializeField] private string[] _filterNames = { "전체", "액티브", "패시브", "영웅+" };
+        [SerializeField] private string[] _filterNames = { "전체", "액티브", "패시브", "영웅+", "내 덱" };
         [SerializeField] private string[] _gradeNames = { "일반", "희귀", "영웅", "전설" };
         [SerializeField] private string _activeName = "액티브";
         [SerializeField] private string _passiveName = "패시브";
@@ -68,6 +68,12 @@ namespace Poker_Card
         [SerializeField] private string _rankLabel = "숫자";
         [SerializeField] private string _activeFooterFormat = "액티브 · 첫 사용부터 {0}라운드";
         [SerializeField] private string _passiveFooter = "패시브 · 상시";
+        [SerializeField] private string _removeLabel = "덱에서 빼기";
+        [SerializeField] private string _addLabel = "덱에 넣기";
+        [SerializeField] private string _deckCountFormat = "{0}/{1}";
+        [SerializeField] private string _deckTag = "덱";
+        [SerializeField] private string _addedToast = "덱에 넣었습니다";
+        [SerializeField] private string _removedToast = "덱에서 뺐습니다";
 
         [Header("색")]
         [SerializeField] private Color _backInner = new Color(0.07f, 0.27f, 0.2f, 1f);
@@ -80,20 +86,15 @@ namespace Poker_Card
         [SerializeField] private Color _mutedColor = new Color(0.62f, 0.76f, 0.7f, 1f);
         [SerializeField] private Color _goldColor = new Color(1f, 0.82f, 0.25f, 1f);
         [SerializeField] private Color _inkColor = new Color(0.1f, 0.1f, 0.1f, 1f);
-        [SerializeField] private Color _paperColor = new Color(0.97f, 0.96f, 0.92f, 1f);
-        [SerializeField] private Color _redSuitColor = new Color(0.78f, 0.12f, 0.1f, 1f);
         [SerializeField] private Color[] _chipColors =
         {
             new Color(0.82f, 0.88f, 0.85f, 1f),
             new Color(1f, 0.47f, 0.27f, 1f),
             new Color(0.24f, 0.55f, 1f, 1f),
-            new Color(0.69f, 0.42f, 1f, 1f)
+            new Color(0.69f, 0.42f, 1f, 1f),
+            new Color(1f, 0.82f, 0.25f, 1f)
         };
-        [SerializeField] private Color _attackColor = new Color(1f, 0.35f, 0.24f, 1f);
-        [SerializeField] private Color _disruptColor = new Color(0.49f, 0.3f, 0.77f, 1f);
-        [SerializeField] private Color _supportColor = new Color(0.16f, 0.42f, 0.74f, 1f);
-        [SerializeField] private Color _wildColor = new Color(0.9f, 0.64f, 0.24f, 1f);
-        [SerializeField] private Color _otherColor = new Color(0.18f, 0.64f, 0.42f, 1f);
+        [SerializeField] private Color _grayButton = new Color(0.247f, 0.298f, 0.278f, 1f);
 
         [Header("움직임")]
         [SerializeField] private float _fadeSeconds = 0.5f;
@@ -131,11 +132,19 @@ namespace Poker_Card
         private string _query = string.Empty;
         private EffectCardData _selected;
         private float _gridClock;
+        private List<EffectCardData> _deck;
+        private EffectDeckRules _deckRules;
+        private Image _toggleButton;
+        private Text _toggleLabel;
+        private Text _toggleCount;
+        private UiToast _toast;
 
         private void Start()
         {
             _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             EnsureEventSystem();
+            _deck = PlayerDeckStore.LoadEditable(_effectDatabase);
+            _deckRules = new EffectDeckRules(_ruleSet);
             _root = UiBuild.CreateCanvas(transform, "CardsCanvas");
             UiBuild.BuildBackdrop(_root, _font, _backInner, _backOuter);
 
@@ -150,6 +159,7 @@ namespace Poker_Card
             UiLobbyChrome.BuildTopBar(_stage, _font, _logoWord, _logoSub, _pageLabel, null, null);
             UiLobbyChrome.BuildTabBar(_stage, _font, "cards", OnTabSelected);
             BuildSortList();
+            _toast = UiToast.Create(_stage, _font, 900f, 640f, 2.2f, 0.25f);
 
             _fade = UiScreenFade.Create(_root, _fadeSeconds);
 
@@ -184,10 +194,7 @@ namespace Poker_Card
 
         private void OnTabSelected(string id)
         {
-            if (id == "home")
-            {
-                _fade.GoTo(_homeSceneName);
-            }
+            _fade.GoTo(UiLobbyChrome.GetSceneName(id));
         }
 
         private void EnsureEventSystem()
@@ -244,6 +251,15 @@ namespace Poker_Card
             BuildStat(304f, out Text rankLabel, out _rankValueText);
             suitLabel.text = _suitLabel;
             rankLabel.text = _rankLabel;
+
+            // 덱에 넣고 빼는 큰 버튼. 아래에 지금 덱 장수가 작게 붙는다.
+            _toggleButton = UiBuild.AddButton("DeckToggle", _stage, _font, _grayButton, string.Empty, 28, ToggleSelectedInDeck);
+            UiBuild.Place(_toggleButton.rectTransform, 35f, 830f, 393f, 80f);
+            _toggleLabel = _toggleButton.GetComponentInChildren<Text>();
+            _toggleLabel.rectTransform.offsetMin = new Vector2(0f, 18f);
+            _toggleCount = UiBuild.AddText("Count", _toggleButton.rectTransform, _font, 16, new Color(1f, 1f, 1f, 0.7f), FontStyle.Bold, TextAnchor.LowerCenter);
+            UiBuild.Stretch(_toggleCount.rectTransform);
+            _toggleCount.rectTransform.offsetMin = new Vector2(0f, 8f);
         }
 
         // 작은 이름 위에 큰 값이 놓인 상자 하나.
@@ -506,6 +522,13 @@ namespace Poker_Card
                     }
 
                     break;
+                case FilterMode.MyDeck:
+                    if (!_deck.Contains(card))
+                    {
+                        return false;
+                    }
+
+                    break;
             }
 
             if (_query.Length == 0)
@@ -542,10 +565,11 @@ namespace Poker_Card
             return GetLowRank(a.Rank).CompareTo(GetLowRank(b.Rank));
         }
 
-        // 작은 카드 한 장: 등급 색 테두리 안에 숫자·문양, 이름, 분류 아이콘.
+        // 작은 카드 한 장. 모양은 공통 도구가 그리고, 여기서는 눌림·기울기·튀어나오기만 붙인다.
         private MiniCard BuildMiniCard(EffectCardData data)
         {
-            var border = UiBuild.AddImage("Card_" + data.DisplayName, _gridContent, Color.white);
+            bool inDeck = _deck.Contains(data);
+            var border = UiMiniCard.Create(_gridContent, _font, data, new Vector2(UiMiniCard.BaseWidth, UiMiniCard.BaseHeight), data == _selected, inDeck ? _deckTag : null);
             var button = border.gameObject.AddComponent<Button>();
             button.targetGraphic = border;
             var colors = button.colors;
@@ -559,59 +583,13 @@ namespace Poker_Card
             border.gameObject.AddComponent<UiCardTilt>();
             var group = border.gameObject.AddComponent<CanvasGroup>();
 
-            var paper = UiBuild.AddImage("Paper", border.rectTransform, _paperColor);
-            paper.raycastTarget = false;
-            UiBuild.Stretch(paper.rectTransform);
-            paper.rectTransform.offsetMin = new Vector2(5f, 5f);
-            paper.rectTransform.offsetMax = new Vector2(-5f, -5f);
-
-            bool red = data.Suit == Suit.Heart || data.Suit == Suit.Diamond;
-            var code = UiBuild.AddText("Code", paper.rectTransform, _font, 26, red ? _redSuitColor : _inkColor, FontStyle.Bold, TextAnchor.UpperLeft);
-            code.text = EffectCardFace.GetCodeText(data);
-            UiBuild.Place(code.rectTransform, 8f, 6f, 110f, 34f);
-
-            var name = UiBuild.AddText("Name", paper.rectTransform, _font, 20, _inkColor, FontStyle.Bold, TextAnchor.UpperLeft);
-            name.horizontalOverflow = HorizontalWrapMode.Wrap;
-            name.text = data.DisplayName;
-            UiBuild.Place(name.rectTransform, 8f, 48f, 112f, 56f);
-
-            var icon = UiBuild.AddImage("Icon", paper.rectTransform, GetCategoryColor(data));
-            icon.raycastTarget = false;
-            icon.rectTransform.anchorMin = icon.rectTransform.anchorMax = icon.rectTransform.pivot = new Vector2(0f, 0f);
-            icon.rectTransform.sizeDelta = new Vector2(22f, 22f);
-            icon.rectTransform.anchoredPosition = new Vector2(24f, 16f);
-            icon.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 45f);
-
-            var card = new MiniCard { Data = data, Rect = border.rectTransform, Border = border, Group = group };
-            RefreshBorder(card);
-            return card;
+            return new MiniCard { Data = data, Rect = border.rectTransform, Border = border, Group = group };
         }
 
         private void RefreshBorder(MiniCard card)
         {
             bool selected = card.Data == _selected;
             card.Border.color = selected ? _goldColor : EffectCardFace.GetGradeColor(card.Data.Grade);
-        }
-
-        private Color GetCategoryColor(EffectCardData card)
-        {
-            var category = card.Category;
-            if (category.HasFlag(EffectCategory.Attack))
-            {
-                return _attackColor;
-            }
-
-            if (category.HasFlag(EffectCategory.Disrupt))
-            {
-                return _disruptColor;
-            }
-
-            if (category.HasFlag(EffectCategory.Defense) || category.HasFlag(EffectCategory.Utility))
-            {
-                return _supportColor;
-            }
-
-            return category.HasFlag(EffectCategory.Wild) ? _wildColor : _otherColor;
         }
 
         // ---------- 선택 ----------
@@ -648,6 +626,50 @@ namespace Poker_Card
             _suitValueText.text = "♠♥♦♣"[(int)data.Suit].ToString();
             _suitValueText.color = data.Suit == Suit.Heart || data.Suit == Suit.Diamond ? new Color(1f, 0.45f, 0.4f, 1f) : _textColor;
             _rankValueText.text = GetRankText(data.Rank);
+            RefreshToggle();
+        }
+
+        private void RefreshToggle()
+        {
+            if (_selected == null)
+            {
+                return;
+            }
+
+            bool inDeck = _deck.Contains(_selected);
+            _toggleLabel.text = inDeck ? _removeLabel : _addLabel;
+            _toggleCount.text = string.Format(_deckCountFormat, _deck.Count, _ruleSet.DeckMax);
+        }
+
+        // 고른 카드를 덱에 넣거나 뺀다. 넣을 수 없으면(장수·등급 제한) 이유를 안내 글로 보여 준다.
+        private void ToggleSelectedInDeck()
+        {
+            if (_selected == null)
+            {
+                return;
+            }
+
+            if (_deck.Contains(_selected))
+            {
+                _deck.Remove(_selected);
+                _toast.Show(_removedToast);
+            }
+            else
+            {
+                string reason = _deckRules.GetRejectReason(_deck, _selected);
+                if (reason != null)
+                {
+                    _toast.Show(reason);
+                    return;
+                }
+
+                _deck.Add(_selected);
+                _toast.Show(_addedToast);
+            }
+
+            PlayerDeckStore.Save(_deck);
+            RefreshToggle();
+            RebuildGrid();
         }
 
         private string GetGradeLetter(EffectGrade grade)

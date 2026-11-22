@@ -1,0 +1,320 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!29 &1
+OcclusionCullingSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_OcclusionBakeSettings:
+    smallestOccluder: 5
+    smallestHole: 0.25
+    backfaceThreshold: 100
+  m_SceneGUID: 00000000000000000000000000000000
+  m_OcclusionCullingData: {fileID: 0}
+--- !u!104 &2
+RenderSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 10
+  m_Fog: 0
+  m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  m_FogMode: 3
+  m_FogDensity: 0.01
+  m_LinearFogStart: 0
+  m_LinearFogEnd: 300
+  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
+  m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
+  m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
+  m_AmbientIntensity: 1
+  m_AmbientMode: 0
+  m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
+  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_HaloStrength: 0.5
+  m_FlareStrength: 1
+  m_FlareFadeSpeed: 3
+  m_HaloTexture: {fileID: 0}
+  m_SpotCookie: {fileID: 10001, guid: 0000000000000000e000000000000000, type: 0}
+  m_DefaultReflectionMode: 0
+  m_DefaultReflectionResolution: 128
+  m_ReflectionBounces: 1
+  m_ReflectionIntensity: 1
+  m_CustomReflection: {fileID: 0}
+  m_Sun: {fileID: 0}
+  m_UseRadianceAmbientProbe: 0
+--- !u!157 &3
+LightmapSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
+  m_GISettings:
+    serializedVersion: 2
+    m_BounceScale: 1
+    m_IndirectOutputScale: 1
+    m_AlbedoBoost: 1
+    m_EnvironmentLightingMode: 0
+    m_EnableBakedLightmaps: 1
+    m_EnableRealtimeLightmaps: 0
+  m_LightmapEditorSettings:
+    serializedVersion: 12
+    m_Resolution: 2
+    m_BakeResolution: 40
+    m_AtlasSize: 1024
+    m_AO: 0
+    m_AOMaxDistance: 1
+    m_CompAOExponent: 1
+    m_CompAOExponentDirect: 0
+    m_ExtractAmbientOcclusion: 0
+    m_Padding: 2
+    m_LightmapParameters: {fileID: 0}
+    m_LightmapsBakeMode: 1
+    m_TextureCompression: 1
+    m_ReflectionCompression: 2
+    m_MixedBakeMode: 2
+    m_BakeBackend: 2
+    m_PVRSampling: 1
+    m_PVRDirectSampleCount: 32
+    m_PVRSampleCount: 512
+    m_PVRBounces: 2
+    m_PVREnvironmentSampleCount: 256
+    m_PVREnvironmentReferencePointCount: 2048
+    m_PVRFilteringMode: 1
+    m_PVRDenoiserTypeDirect: 1
+    m_PVRDenoiserTypeIndirect: 1
+    m_PVRDenoiserTypeAO: 1
+    m_PVRFilterTypeDirect: 0
+    m_PVRFilterTypeIndirect: 0
+    m_PVRFilterTypeAO: 0
+    m_PVREnvironmentMIS: 1
+    m_PVRCulling: 1
+    m_PVRFilteringGaussRadiusDirect: 1
+    m_PVRFilteringGaussRadiusIndirect: 1
+    m_PVRFilteringGaussRadiusAO: 1
+    m_PVRFilteringAtrousPositionSigmaDirect: 0.5
+    m_PVRFilteringAtrousPositionSigmaIndirect: 2
+    m_PVRFilteringAtrousPositionSigmaAO: 1
+    m_ExportTrainingData: 0
+    m_TrainingDataDestination: TrainingData
+    m_LightProbeSampleCountMultiplier: 4
+  m_LightingDataAsset: {fileID: 20201, guid: 0000000000000000f000000000000000, type: 0}
+  m_LightingSettings: {fileID: 0}
+--- !u!196 &4
+NavMeshSettings:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_BuildSettings:
+    serializedVersion: 3
+    agentTypeID: 0
+    agentRadius: 0.5
+    agentHeight: 2
+    agentSlope: 45
+    agentClimb: 0.4
+    ledgeDropHeight: 0
+    maxJumpAcrossDistance: 0
+    minRegionArea: 2
+    manualCellSize: 0
+    cellSize: 0.16666667
+    manualTileSize: 0
+    tileSize: 256
+    buildHeightMesh: 0
+    maxJobWorkers: 0
+    preserveTilesOutsideBounds: 0
+    debug:
+      m_Flags: 0
+  m_NavMeshData: {fileID: 0}
+--- !u!1 &405411249
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 405411251}
+  - component: {fileID: 405411250}
+  m_Layer: 0
+  m_Name: DeckScreen
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &405411250
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 405411249}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2581ad68a756b434c886e3ac077b4d5e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Poker_Card.DeckScreen
+  _effectDatabase: {fileID: 11400000, guid: bd0e70f1f31f49a41adddd9dfc53b669, type: 2}
+  _ruleSet: {fileID: 11400000, guid: 539ce8062161073469e3886a1ba0821d, type: 2}
+  _logoWord: RUNE DUEL
+  _logoSub: "\uB8EC \uACB0\uD22C"
+  _pageLabel: "\uB371"
+  _infoLabel: "\uCE74\uB4DC \uC815\uBCF4"
+  _deckTitle: "\uBA54\uC778 \uB371"
+  _deckCountFormat: '{0} / {1}'
+  _limitFormat: "\uC601\uC6C5 {0}/{1}   \uC804\uC124 {2}/{3}"
+  _completeText: "\u2713 \uB371 \uC644\uC131"
+  _incompleteFormat: "\uB371 \uBBF8\uC644\uC131 \xB7 {0}\uC7A5 \uB354 \uD544\uC694"
+  _overFormat: "\uB371 \uBBF8\uC644\uC131 \xB7 {0}\uC7A5 \uC904\uC5EC\uC57C \uD568"
+  _hint: "\uCE74\uB4DC\uB97C \uB20C\uB7EC \uC120\uD0DD\uD558\uACE0, \uB354\uBE14\uD074\uB9AD\uD558\uAC70\uB098
+    \uBC84\uD2BC\uC73C\uB85C \uB371\uC5D0 \uB123\uACE0 \uBE8D\uB2C8\uB2E4"
+  _fallbackNote: "\uB371\uC774 \uC644\uC131\uB418\uC9C0 \uC54A\uC73C\uBA74 \uC804\uD22C\uB294
+    \uAE30\uBCF8 \uB371\uC73C\uB85C \uC2DC\uC791\uD569\uB2C8\uB2E4"
+  _defaultLabel: "\uAE30\uBCF8 \uB371"
+  _randomLabel: "\uBB34\uC791\uC704 \uB371"
+  _clearLabel: "\uBAA8\uB450 \uBE44\uC6B0\uAE30"
+  _ownTitle: "\uBCF4\uC720 \uCE74\uB4DC"
+  _allLabel: "\uC804\uCCB4"
+  _removeLabel: "\uB371\uC5D0\uC11C \uBE7C\uAE30"
+  _addLabel: "\uB371\uC5D0 \uB123\uAE30"
+  _deckTag: "\uB371"
+  _gradeNames:
+  - "\uC77C\uBC18"
+  - "\uD76C\uADC0"
+  - "\uC601\uC6C5"
+  - "\uC804\uC124"
+  _activeName: "\uC561\uD2F0\uBE0C"
+  _passiveName: "\uD328\uC2DC\uBE0C"
+  _activeFooterFormat: "\uC561\uD2F0\uBE0C \xB7 \uCCAB \uC0AC\uC6A9\uBD80\uD130 {0}\uB77C\uC6B4\uB4DC"
+  _passiveFooter: "\uD328\uC2DC\uBE0C \xB7 \uC0C1\uC2DC"
+  _statActive: "\uC561\uD2F0\uBE0C"
+  _statPassive: "\uD328\uC2DC\uBE0C"
+  _addedToast: "\uB371\uC5D0 \uB123\uC5C8\uC2B5\uB2C8\uB2E4"
+  _removedToast: "\uB371\uC5D0\uC11C \uBE90\uC2B5\uB2C8\uB2E4"
+  _defaultToast: "\uAE30\uBCF8 \uB371\uC73C\uB85C \uB418\uB3CC\uB838\uC2B5\uB2C8\uB2E4"
+  _randomToast: "\uBB34\uC791\uC704 \uB371\uC744 \uB9CC\uB4E4\uC5C8\uC2B5\uB2C8\uB2E4"
+  _clearToast: "\uB371\uC744 \uBE44\uC6E0\uC2B5\uB2C8\uB2E4"
+  _backInner: {r: 0.07, g: 0.27, b: 0.2, a: 1}
+  _backOuter: {r: 0.01, g: 0.06, b: 0.045, a: 1}
+  _panelColor: {r: 0.015, g: 0.075, b: 0.058, a: 0.78}
+  _lineColor: {r: 0.18, g: 0.34, b: 0.29, a: 1}
+  _fieldColor: {r: 0.05, g: 0.17, b: 0.13, a: 1}
+  _rowColor: {r: 0.045, g: 0.15, b: 0.115, a: 1}
+  _rowInDeckColor: {r: 0.1, g: 0.3, b: 0.22, a: 1}
+  _textColor: {r: 0.957, g: 0.945, b: 0.91, a: 1}
+  _bodyColor: {r: 0.812, g: 0.902, b: 0.863, a: 1}
+  _mutedColor: {r: 0.62, g: 0.76, b: 0.7, a: 1}
+  _goldColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  _okColor: {r: 0.42, g: 0.93, b: 0.62, a: 1}
+  _warnColor: {r: 1, g: 0.6, b: 0.3, a: 1}
+  _inkColor: {r: 0.1, g: 0.1, b: 0.1, a: 1}
+  _grayButton: {r: 0.247, g: 0.298, b: 0.278, a: 1}
+  _tagColor: {r: 1, g: 0.353, b: 0.235, a: 1}
+  _fadeSeconds: 0.5
+--- !u!4 &405411251
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 405411249}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1961820074
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1961820077}
+  - component: {fileID: 1961820076}
+  - component: {fileID: 1961820075}
+  m_Layer: 0
+  m_Name: Main Camera
+  m_TagString: MainCamera
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!81 &1961820075
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1961820074}
+  m_Enabled: 1
+--- !u!20 &1961820076
+Camera:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1961820074}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0.01, g: 0.06, b: 0.045, a: 1}
+  m_projectionMatrixMode: 1
+  m_GateFitMode: 2
+  m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 50
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.3
+  far clip plane: 1000
+  field of view: 60
+  orthographic: 1
+  orthographic size: 5
+  m_Depth: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 1
+  m_AllowMSAA: 1
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
+--- !u!4 &1961820077
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1961820074}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1660057539 &9223372036854775807
+SceneRoots:
+  m_ObjectHideFlags: 0
+  m_Roots:
+  - {fileID: 1961820077}
+  - {fileID: 405411251}

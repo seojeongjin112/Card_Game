@@ -295,8 +295,12 @@ MonoBehaviour:
   _heroHeading: "\uC774\uBC88 \uD310\uC744 \uB05D\uB0B4\uB294 \uD55C \uC7A5"
   _heroDescription: "\uD3EC\uCEE4 \uC871\uBCF4\uC640 \uD6A8\uACFC \uCE74\uB4DC\uB85C
     \uC0C1\uB300\uC758 HP\uB97C \uBA3C\uC800 0\uC73C\uB85C \uB9CC\uB4DC\uC138\uC694."
-  _deckFormat: "\uD6A8\uACFC \uB371 \xB7 \uC2A4\uD398\uC774\uB4DC \uC911\uC2EC \xB7
-    {0}\uC7A5"
+  _deckFormat: "\uD6A8\uACFC \uB371 \xB7 {0} \uC911\uC2EC \xB7 {1}\uC7A5"
+  _suitNames:
+  - "\uC2A4\uD398\uC774\uB4DC"
+  - "\uD558\uD2B8"
+  - "\uB2E4\uC774\uC544"
+  - "\uD074\uB85C\uBC84"
   _panelTitle: "1VS1 \uB4C0\uC5BC"
   _panelNote: "HP\uB97C \uBA3C\uC800 0\uC73C\uB85C"
   _startLabel: "\uAC8C\uC784 \uC2DC\uC791"

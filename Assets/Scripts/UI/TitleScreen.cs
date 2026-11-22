@@ -26,7 +26,6 @@ namespace Poker_Card
         [SerializeField] private EffectCardDatabase _effectDatabase;
         [SerializeField] private PokerCardDatabase _pokerDatabase;
         [SerializeField] private string _gameSceneName = "Card";
-        [SerializeField] private string _cardsSceneName = "Cards";
 
         [Header("문구")]
         [SerializeField] private string _logoWord = "RUNE DUEL";
@@ -35,7 +34,8 @@ namespace Poker_Card
         [SerializeField] private string _heroLabel = "MY ACE";
         [SerializeField] private string _heroHeading = "이번 판을 끝내는 한 장";
         [SerializeField] private string _heroDescription = "포커 족보와 효과 카드로 상대의 HP를 먼저 0으로 만드세요.";
-        [SerializeField] private string _deckFormat = "효과 덱 · 스페이드 중심 · {0}장";
+        [SerializeField] private string _deckFormat = "효과 덱 · {0} 중심 · {1}장";
+        [SerializeField] private string[] _suitNames = { "스페이드", "하트", "다이아", "클로버" };
         [SerializeField] private string _panelTitle = "1VS1 듀얼";
         [SerializeField] private string _panelNote = "HP를 먼저 0으로";
         [SerializeField] private string _startLabel = "게임 시작";
@@ -100,6 +100,7 @@ namespace Poker_Card
         private RectTransform _stage;
         private RectTransform _hero;
         private Vector2 _heroRest;
+        private Suit _topSuit = Suit.Spade;
         private Text _difficultyText;
         private Image _difficultyPill;
         private GameObject _howToWindow;
@@ -159,10 +160,7 @@ namespace Poker_Card
         // 아래 탭에서 다른 화면을 고르면 그 씬으로 넘어간다.
         private void OnTabSelected(string id)
         {
-            if (id == "cards")
-            {
-                _fadeScreen.GoTo(_cardsSceneName);
-            }
+            _fadeScreen.GoTo(UiLobbyChrome.GetSceneName(id));
         }
 
         private void QuitGame()
@@ -276,7 +274,9 @@ namespace Poker_Card
             Place(description.rectTransform, 560f, 352f, 560f, 60f);
 
             var deck = AddText("HeroDeck", parent, 22, _textColor, FontStyle.Bold, TextAnchor.MiddleLeft);
-            deck.text = string.Format(_deckFormat, _effectDatabase != null ? _effectDatabase.Cards.Count : 0);
+            var playerDeck = _effectDatabase != null ? PlayerDeckStore.LoadEditable(_effectDatabase) : new List<EffectCardData>();
+            _topSuit = GetTopSuit(playerDeck);
+            deck.text = string.Format(_deckFormat, _suitNames[(int)_topSuit], playerDeck.Count);
             Place(deck.rectTransform, 560f, 432f, 560f, 32f);
 
             BuildMiniCards(parent);
@@ -291,9 +291,9 @@ namespace Poker_Card
             }
 
             var picks = new List<EffectCardData>();
-            foreach (var card in _effectDatabase.Cards)
+            foreach (var card in PlayerDeckStore.LoadEditable(_effectDatabase))
             {
-                if (card.Suit == Suit.Spade)
+                if (card.Suit == _topSuit)
                 {
                     picks.Add(card);
                 }
@@ -643,6 +643,27 @@ namespace Poker_Card
         private static void Stretch(RectTransform rect)
         {
             UiBuild.Stretch(rect);
+        }
+
+        // 덱에서 장수가 가장 많은 문양. 같으면 앞선 문양을 쓴다.
+        private static Suit GetTopSuit(IReadOnlyList<EffectCardData> deck)
+        {
+            var counts = new int[4];
+            foreach (var card in deck)
+            {
+                counts[(int)card.Suit]++;
+            }
+
+            int best = 0;
+            for (int i = 1; i < counts.Length; i++)
+            {
+                if (counts[i] > counts[best])
+                {
+                    best = i;
+                }
+            }
+
+            return (Suit)best;
         }
 
         private static int GetLowRank(Rank rank)

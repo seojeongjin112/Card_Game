@@ -282,7 +282,11 @@ namespace Effect_Card
 
         private EffectSideContext CreateSide(CombatantState state)
         {
-            var deck = _deckRules.BuildRandomDeck(_database.Cards);
+            // 플레이어는 덱 화면에서 만든 덱으로, 상대는 규칙 안에서 무작위로 채운 덱으로 싸운다.
+            bool isPlayerSide = state == _state.Player;
+            var deck = isPlayerSide
+                ? PlayerDeckStore.LoadForBattle(_database, _ruleSet)
+                : _deckRules.BuildRandomDeck(_database.Cards);
             var inventory = new EffectInventory(deck, _deckRules);
             inventory.DealStarters(_ruleSet.StarterCount);
 
