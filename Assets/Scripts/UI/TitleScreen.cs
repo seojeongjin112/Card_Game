@@ -21,12 +21,12 @@ namespace Poker_Card
         private const float ReferenceHeight = 1080f;
         private const float BigButtonDepth = 8f;
         private const float BigButtonWidth = 300f;
-        private const float BarOverflow = 1500f;
 
         [Header("데이터와 씬")]
         [SerializeField] private EffectCardDatabase _effectDatabase;
         [SerializeField] private PokerCardDatabase _pokerDatabase;
         [SerializeField] private string _gameSceneName = "Card";
+        [SerializeField] private string _cardsSceneName = "Cards";
 
         [Header("문구")]
         [SerializeField] private string _logoWord = "RUNE DUEL";
@@ -95,7 +95,7 @@ namespace Poker_Card
 
         private Font _font;
         private RectTransform _root;
-        private Image _fade;
+        private UiScreenFade _fadeScreen;
         private CanvasGroup _content;
         private RectTransform _stage;
         private RectTransform _hero;
@@ -105,9 +105,6 @@ namespace Poker_Card
         private GameObject _howToWindow;
         private int _difficultyIndex = 1;
         private float _clock;
-        private float _fadeClock;
-        private bool _starting;
-        private bool _fadingIn = true;
 
         private void Start()
         {
@@ -146,54 +143,26 @@ namespace Poker_Card
                 _stage.localPosition = Vector3.down * (_introRise * fit * (1f - intro));
             }
 
-            TickFade();
-        }
-
-        // 눌러서 시작하면 검은 막이 덮인 뒤에 씬을 바꾼다. 처음 들어올 때는 반대로 검은 막이 걷힌다.
-        private void TickFade()
-        {
-            if (_fade == null)
-            {
-                return;
-            }
-
-            if (_fadingIn)
-            {
-                _fadeClock += Time.unscaledDeltaTime;
-                float k = Mathf.Clamp01(_fadeClock / _fadeSeconds);
-                _fade.color = new Color(0f, 0f, 0f, 1f - k);
-                if (k >= 1f)
-                {
-                    _fadingIn = false;
-                    _fade.raycastTarget = false;
-                }
-
-                return;
-            }
-
-            if (_starting)
-            {
-                _fadeClock += Time.unscaledDeltaTime;
-                float k = Mathf.Clamp01(_fadeClock / _fadeSeconds);
-                _fade.color = new Color(0f, 0f, 0f, k);
-                if (k >= 1f)
-                {
-                    SceneManager.LoadScene(_gameSceneName);
-                }
-            }
         }
 
         private void StartGame()
         {
-            if (_starting)
+            if (_fadeScreen.IsLeaving)
             {
                 return;
             }
 
             GameSession.Difficulty = (EnemyDifficulty)_difficultyIndex;
-            _starting = true;
-            _fadeClock = 0f;
-            _fade.raycastTarget = true;
+            _fadeScreen.GoTo(_gameSceneName);
+        }
+
+        // 아래 탭에서 다른 화면을 고르면 그 씬으로 넘어간다.
+        private void OnTabSelected(string id)
+        {
+            if (id == "cards")
+            {
+                _fadeScreen.GoTo(_cardsSceneName);
+            }
         }
 
         private void QuitGame()
@@ -233,37 +202,12 @@ namespace Poker_Card
 
         private void BuildCanvas()
         {
-            var go = new GameObject("TitleCanvas", typeof(RectTransform));
-            go.transform.SetParent(transform, false);
-            var canvas = go.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            var scaler = go.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(ReferenceWidth, ReferenceHeight);
-            scaler.matchWidthOrHeight = 0.5f;
-            go.AddComponent<GraphicRaycaster>();
-            _root = (RectTransform)go.transform;
+            _root = UiBuild.CreateCanvas(transform, "TitleCanvas");
         }
 
-        // 가운데가 밝은 초록 그라데이션 위에 문양이 떠다니고, 가는 가로줄(CRT 느낌)이 덮인다.
         private void BuildBackground()
         {
-            var back = AddImage("Background", _root, _backOuter);
-            Stretch(back.rectTransform);
-            back.sprite = CreateRadialSprite(_backInner, _backOuter);
-            back.color = Color.white;
-            back.raycastTarget = false;
-
-            UiFxBackground.Create(_root, _font);
-
-            var linesGo = new GameObject("Scanlines", typeof(RectTransform));
-            linesGo.transform.SetParent(_root, false);
-            Stretch((RectTransform)linesGo.transform);
-            var lines = linesGo.AddComponent<RawImage>();
-            lines.texture = CreateScanlineTexture();
-            lines.uvRect = new Rect(0f, 0f, 1f, ReferenceHeight / 4f);
-            lines.color = new Color(1f, 1f, 1f, 0.55f);
-            lines.raycastTarget = false;
+            UiBuild.BuildBackdrop(_root, _font, _backInner, _backOuter);
         }
 
         private void BuildContent()
@@ -286,31 +230,8 @@ namespace Poker_Card
 
         private void BuildTopBar(RectTransform parent)
         {
-            var bar = AddImage("TopBar", parent, _barColor);
-            Place(bar.rectTransform, -BarOverflow, 0f, ReferenceWidth + BarOverflow * 2f, 84f);
-            var line = AddImage("TopLine", parent, _lineColor);
-            Place(line.rectTransform, -BarOverflow, 84f, ReferenceWidth + BarOverflow * 2f, 3f);
-
-            float x = 56f;
-            foreach (char letter in _logoWord)
-            {
-                if (letter != ' ')
-                {
-                    var text = AddText("Logo", parent, 40, _logoColor, FontStyle.Bold, TextAnchor.MiddleCenter);
-                    text.text = letter.ToString();
-                    Place(text.rectTransform, x, 14f, 36f, 56f);
-                    AddShadow(text, new Color(0f, 0f, 0f, 0.6f), new Vector2(3f, -3f));
-                }
-
-                x += letter == ' ' ? 18f : 34f;
-            }
-
-            var sub = AddText("LogoSub", parent, 20, _mutedColor, FontStyle.Bold, TextAnchor.MiddleLeft);
-            sub.text = _logoSub;
-            Place(sub.rectTransform, x + 12f, 30f, 160f, 28f);
-
-            var quit = AddButton("TopQuit", parent, _grayButton, _quitLabel, null, QuitGame, 22);
-            Place(quit.rectTransform, ReferenceWidth - 56f - 120f, 20f, 120f, 46f);
+            UiLobbyChrome.BuildTopBar(parent, _font, _logoWord, _logoSub, null, _quitLabel, QuitGame);
+            UiLobbyChrome.BuildTabBar(parent, _font, "home", OnTabSelected);
         }
 
         // 왼쪽의 큰 대표 카드와 그 옆의 문구, 현재 덱 미리보기 카드 5장.
@@ -437,7 +358,7 @@ namespace Poker_Card
                 rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
                 rect.pivot = new Vector2(0.5f, 0f);
                 rect.sizeDelta = new Vector2(132f, 184f);
-                rect.anchoredPosition = new Vector2(620f + i * 76f, -(1000f - lifts[i]));
+                rect.anchoredPosition = new Vector2(620f + i * 76f, -(965f - lifts[i]));
                 rect.localRotation = Quaternion.Euler(0f, 0f, angles[i]);
                 var image = go.AddComponent<Image>();
                 image.sprite = sprite;
@@ -643,7 +564,7 @@ namespace Poker_Card
         {
             _howToWindow.SetActive(true);
             _howToWindow.transform.SetAsLastSibling();
-            _fade.transform.SetAsLastSibling();
+            _fadeScreen.BringToFront();
         }
 
         private void CloseHowTo()
@@ -653,60 +574,24 @@ namespace Poker_Card
 
         private void BuildFade()
         {
-            _fade = AddImage("Fade", _root, Color.black);
-            Stretch(_fade.rectTransform);
-            _fade.raycastTarget = true;
-            _fade.transform.SetAsLastSibling();
+            _fadeScreen = UiScreenFade.Create(_root, _fadeSeconds);
         }
 
-        // ---------- 요소 만들기 ----------
+        // ---------- 요소 만들기 (공통 도구에 맡긴다) ----------
 
         private Image AddImage(string name, RectTransform parent, Color color)
         {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.layer = parent.gameObject.layer;
-            go.transform.SetParent(parent, false);
-            var image = go.AddComponent<Image>();
-            image.color = color;
-            return image;
+            return UiBuild.AddImage(name, parent, color);
         }
 
         private Text AddText(string name, RectTransform parent, int fontSize, Color color, FontStyle style, TextAnchor anchor)
         {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.layer = parent.gameObject.layer;
-            go.transform.SetParent(parent, false);
-            var text = go.AddComponent<Text>();
-            text.font = _font;
-            text.fontSize = fontSize;
-            text.fontStyle = style;
-            text.alignment = anchor;
-            text.color = color;
-            text.horizontalOverflow = HorizontalWrapMode.Overflow;
-            text.verticalOverflow = VerticalWrapMode.Overflow;
-            text.supportRichText = true;
-            text.raycastTarget = false;
-            return text;
+            return UiBuild.AddText(name, parent, _font, fontSize, color, style, anchor);
         }
 
-        // 한 가지 색의 평평한 버튼. 눌림·올림 색은 색조로 낸다.
         private Image AddButton(string name, RectTransform parent, Color color, string label, string sub, UnityEngine.Events.UnityAction onClick, int fontSize)
         {
-            var image = AddImage(name, parent, Color.white);
-            var button = image.gameObject.AddComponent<Button>();
-            button.targetGraphic = image;
-            var colors = button.colors;
-            colors.normalColor = color;
-            colors.highlightedColor = Color.Lerp(color, Color.white, 0.18f);
-            colors.pressedColor = Color.Lerp(color, Color.black, 0.2f);
-            colors.selectedColor = color;
-            button.colors = colors;
-            button.onClick.AddListener(onClick);
-
-            var text = AddText("Label", image.rectTransform, fontSize, Color.white, FontStyle.Bold, TextAnchor.MiddleCenter);
-            text.text = label;
-            Stretch(text.rectTransform);
-            return image;
+            return UiBuild.AddButton(name, parent, _font, color, label, fontSize, onClick);
         }
 
         // 큰 버튼: 아래쪽에 어두운 띠를 깔아 눌러 들어가는 듯한 입체감을 준다. 제목 아래에 작은 영문이 붙는다.
@@ -731,94 +616,38 @@ namespace Poker_Card
 
         private static void AddShadow(Graphic graphic, Color color, Vector2 distance)
         {
-            var shadow = graphic.gameObject.AddComponent<Shadow>();
-            shadow.effectColor = color;
-            shadow.effectDistance = distance;
+            UiBuild.AddShadow(graphic, color, distance);
         }
 
         private static void AddOutline(Graphic graphic, Color color, Vector2 distance)
         {
-            var outline = graphic.gameObject.AddComponent<Outline>();
-            outline.effectColor = color;
-            outline.effectDistance = distance;
+            UiBuild.AddOutline(graphic, color, distance);
         }
 
-        // ---------- 자리 잡기 ----------
-
-        // 왼쪽 위 기준 좌표(1920x1080)로 자리를 정한다.
         private static void Place(RectTransform rect, float left, float top, float width, float height)
         {
-            rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
-            rect.pivot = new Vector2(0f, 1f);
-            rect.anchoredPosition = new Vector2(left, -top);
-            rect.sizeDelta = new Vector2(width, height);
+            UiBuild.Place(rect, left, top, width, height);
         }
 
         // 부모의 왼쪽 위를 기준으로 하는 자리. 부모 안에서 안쪽 요소를 놓을 때 쓴다.
         private static void PlaceInside(RectTransform rect, float left, float top, float width, float height)
         {
-            rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
-            rect.pivot = new Vector2(0f, 1f);
-            rect.anchoredPosition = new Vector2(left, -top);
-            rect.sizeDelta = new Vector2(width, height);
+            UiBuild.Place(rect, left, top, width, height);
         }
 
         private static void Center(RectTransform rect, Vector2 size, Vector2 offset)
         {
-            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.sizeDelta = size;
-            rect.anchoredPosition = offset;
+            UiBuild.Center(rect, size, offset);
         }
 
         private static void Stretch(RectTransform rect)
         {
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = rect.offsetMax = Vector2.zero;
-            rect.pivot = new Vector2(0.5f, 0.5f);
+            UiBuild.Stretch(rect);
         }
-
-        // ---------- 그림 만들기 ----------
 
         private static int GetLowRank(Rank rank)
         {
             return rank == Rank.Ace ? 1 : (int)rank;
-        }
-
-        // 왼쪽 가운데가 밝고 가장자리가 어두운 원형 그라데이션.
-        private static Sprite CreateRadialSprite(Color inner, Color outer)
-        {
-            const int size = 128;
-            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
-            texture.wrapMode = TextureWrapMode.Clamp;
-            var center = new Vector2(0.4f, 0.5f);
-            for (int y = 0; y < size; y++)
-            {
-                for (int x = 0; x < size; x++)
-                {
-                    var point = new Vector2((x + 0.5f) / size, (y + 0.5f) / size);
-                    float distance = Mathf.Clamp01(Vector2.Distance(point, center) / 0.85f);
-                    texture.SetPixel(x, y, Color.Lerp(inner, outer, Mathf.SmoothStep(0f, 1f, distance)));
-                }
-            }
-
-            texture.Apply();
-            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f);
-        }
-
-        // 네 줄마다 한 줄만 어둡게 칠한 가로줄. uvRect로 화면 높이만큼 반복해서 깐다.
-        private static Texture2D CreateScanlineTexture()
-        {
-            var texture = new Texture2D(1, 4, TextureFormat.RGBA32, false);
-            texture.wrapMode = TextureWrapMode.Repeat;
-            texture.filterMode = FilterMode.Point;
-            for (int y = 0; y < 4; y++)
-            {
-                texture.SetPixel(0, y, y == 0 ? new Color(0f, 0f, 0f, 0.14f) : Color.clear);
-            }
-
-            texture.Apply();
-            return texture;
         }
     }
 }
